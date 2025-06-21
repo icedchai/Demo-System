@@ -22,7 +22,7 @@ namespace Demo_System
         {
             SnapshotRecorder recorder = Plugin.Singleton.Recorder;
 
-            if (recorder is null)
+            if (recorder is null || recorder.Disposed)
             {
                 Plugin.Singleton.Recorder = new SnapshotRecorder();
                 recorder = Plugin.Singleton.Recorder;

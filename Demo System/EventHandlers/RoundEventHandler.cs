@@ -43,6 +43,10 @@ namespace DemoSystem.EventHandlers
 
         private void OnSpawned(SpawnedEventArgs e)
         {
+            if (!Plugin.Singleton.Recorder.IsRecording)
+            {
+                return;
+            }
             Plugin.Singleton.Recorder.QueuedSnapshots.Enqueue(new PlayerSpawnedSnapshot() { Player = e.Player.Id, Role = e.Player.Role.Type, SpawnReason = e.Reason, SpawnFlags = e.SpawnFlags });
         }
     }

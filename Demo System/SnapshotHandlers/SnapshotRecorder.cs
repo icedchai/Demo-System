@@ -9,7 +9,7 @@ namespace DemoSystem.SnapshotHandlers
 {
     public class SnapshotRecorder : IDisposable
     {
-        private bool _disposed;
+        public bool Disposed { get; private set; }
 
         public bool IsRecording { get; private set; }
 
@@ -40,13 +40,14 @@ namespace DemoSystem.SnapshotHandlers
         {
             IsRecording = false;
             WriteToFile();
+            Dispose();
         }
 
         public void Dispose()
         {
             WriteToFile();
 
-            _disposed = true;
+            Disposed = true;
             Stream.Dispose();
             Writer.Dispose();
             FileStream.Dispose();
@@ -73,7 +74,7 @@ namespace DemoSystem.SnapshotHandlers
         private IEnumerator<float> EncodeSnapshots()
         {
             int frame = Time.frameCount;
-            while (!_disposed)
+            while (!Disposed)
             {
                 while (QueuedSnapshots.Count == 0)
                 {
@@ -91,7 +92,7 @@ namespace DemoSystem.SnapshotHandlers
 
         private IEnumerator<float> WriteFile()
         {
-            while (!_disposed)
+            while (!Disposed)
             {
                 WriteToFile();
                 yield return Timing.WaitForSeconds(5f);
