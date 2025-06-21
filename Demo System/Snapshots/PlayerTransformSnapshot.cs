@@ -14,6 +14,18 @@
     /// </summary>
     public class PlayerTransformSnapshot : Snapshot, IPlayerSnapshot, IPositionSnapshot, IRotationSnapshot
     {
+        public PlayerTransformSnapshot()
+        {
+
+        }
+
+        public PlayerTransformSnapshot(Player player)
+        {
+            Player = player.Id;
+            Position = player.Position;
+            Rotation = player.Rotation;
+        }
+
         public int Player { get; set; }
 
         public Vector3 Position { get; set; }

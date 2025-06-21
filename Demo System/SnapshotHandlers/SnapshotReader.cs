@@ -30,7 +30,7 @@ namespace DemoSystem.SnapshotHandlers
 
 
             //Todo: Remove
-            Timing.RunCoroutine(ReadAll());
+            Timing.CallDelayed(5f, () => Timing.RunCoroutine(ReadAll()));
         }
 
         private FileStream FileStream;
@@ -39,9 +39,8 @@ namespace DemoSystem.SnapshotHandlers
 
         public Npc SpawnPlayer(int id, string name, RoleTypeId? role = null)
         {
-            Npc npc = Npc.Spawn(name, role ?? RoleTypeId.Tutorial);
+            Npc npc = Npc.Spawn(name, role ?? RoleTypeId.Overwatch);
             Players.Add(npc.Id, npc);
-            npc.IsGodModeEnabled = true;
             return npc;
         }
 
@@ -49,8 +48,8 @@ namespace DemoSystem.SnapshotHandlers
         {
             if (!Players.TryGetValue(id, out npc))
             {
-                npc = SpawnPlayer(id, $"{id}");
-                return true;
+                npc = null;
+                return false;
             }
             return true;
         }
@@ -67,7 +66,14 @@ namespace DemoSystem.SnapshotHandlers
                     }
                     else
                     {
-                        snapshot.ReadSnapshot();
+                        try
+                        {
+                            snapshot.ReadSnapshot();
+                        }
+                        catch (Exception e)
+                        {
+                            Log.Error(e);
+                        }
                     }
                 }
             }

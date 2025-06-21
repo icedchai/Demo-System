@@ -25,12 +25,18 @@ namespace DemoSystem.SnapshotHandlers
         {
             Stream = new MemoryStream();
             Writer = new BinaryWriter(Stream);
-            FileStream = new FileStream($"B:/Recordings/recording-{Round.StartedTime.ToString("yyyy-dd-M--HH-mm-ss")}", FileMode.Append, FileAccess.Write);
         }
 
         public void StartRecording()
         {
+            FileStream = new FileStream($"B:/Recordings/recording-{Round.StartedTime.ToString("yyyy-dd-M--HH-mm-ss")}", FileMode.Append, FileAccess.Write);
             IsRecording = true;
+
+            foreach (Player player in Player.List)
+            {
+                QueuedSnapshots.Enqueue(new PlayerVerifiedSnapshot() { Player = player.Id, Nickname = player.Nickname });
+                QueuedSnapshots.Enqueue(new PlayerSpawnedSnapshot() { Player = player.Id, Role = player.Role.Type, SpawnFlags = PlayerRoles.RoleSpawnFlags.None });
+            }
             Timing.RunCoroutine(EncodeSnapshots());
             Timing.RunCoroutine(WriteFile());
             Timing.RunCoroutine(RecordPositions());
@@ -131,7 +137,7 @@ namespace DemoSystem.SnapshotHandlers
 
                         if (recordPosOverride || playerPos != pos || playerRot != rot)
                         {
-                            QueuedSnapshots.Enqueue(new PlayerTransformSnapshot() { Player = player.Id, Rotation = playerRot, Position = playerPos });
+                            QueuedSnapshots.Enqueue(new PlayerTransformSnapshot(player));
                             playerLastPos[player] = playerPos;
                             playerLastRot[player] = playerRot;
                         }
