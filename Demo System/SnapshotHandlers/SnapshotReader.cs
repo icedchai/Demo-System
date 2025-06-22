@@ -6,6 +6,7 @@ using Exiled.API.Features.Toys;
 using MEC;
 using NetworkManagerUtils.Dummies;
 using PlayerRoles;
+using PlayerRoles.FirstPersonControl;
 
 namespace DemoSystem.SnapshotHandlers
 {
@@ -49,7 +50,8 @@ namespace DemoSystem.SnapshotHandlers
         public Npc SpawnPlayer(int id, string name, RoleTypeId? role = null)
         {
             Npc npc = new Npc(DummyUtils.SpawnDummy(name));
-            npc.GroupName = "Actor";
+            Timing.CallDelayed(0.5f, () => npc.RankName = "ACTOR");
+
             Players.Add(id, npc);
             return npc;
         }
@@ -91,6 +93,10 @@ namespace DemoSystem.SnapshotHandlers
                             Log.Error(e);
                         }
                     }
+                }
+                else
+                {
+                    Log.Info("Finished readout");
                 }
             }
         }

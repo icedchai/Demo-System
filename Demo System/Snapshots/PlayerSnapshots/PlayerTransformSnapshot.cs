@@ -8,6 +8,8 @@ namespace DemoSystem.Snapshots.PlayerSnapshots
     using Exiled.API.Features;
     using Exiled.API.Features.Core.Generic;
     using Exiled.API.Features.Toys;
+    using PlayerRoles.FirstPersonControl;
+    using RelativePositioning;
     using System.IO;
     using UnityEngine;
 
@@ -41,12 +43,17 @@ namespace DemoSystem.Snapshots.PlayerSnapshots
         {
             base.ReadSnapshot();
 
-            if (SnapshotReader.Singleton.TryGetPlayer(Player, out Npc npc))
+            if (SnapshotReader.Singleton.TryGetPlayer(Player, out Npc npc) && npc.Role.Base is IFpcRole fpcRole)
             {
                 npc.Position = Position;
                 npc.Rotation = Rotation;
                 npc.Scale = Scale;
             }
+        }
+        void SetPosition(IFpcRole role, Vector3 dir, float distance)
+        {
+            Vector3 vector = role.FpcModule.Hub.PlayerCameraReference.TransformDirection(dir).NormalizeIgnoreY();
+            role.FpcModule.Motor.ReceivedPosition = new RelativePosition(Position + vector * distance);
         }
     }
 }

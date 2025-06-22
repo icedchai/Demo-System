@@ -127,7 +127,9 @@ namespace DemoSystem.SnapshotHandlers
         Dictionary<Player, Vector3> playerLastScale { get; set; } = new Dictionary<Player, Vector3>();
 
         Dictionary<Player, float> playerLastHealth { get; set; } = new Dictionary<Player, float>();
+
         Dictionary<Player, float> playerLastHume { get; set; } = new Dictionary<Player, float>();
+
         Dictionary<Player, float> playerLastArtificial { get; set; } = new Dictionary<Player, float>();
 
         private IEnumerator<float> RecordPlayerProperties()
@@ -205,7 +207,7 @@ namespace DemoSystem.SnapshotHandlers
             if (!playerLastHume.TryGetValue(player, out float lastRecordedHume))
             {
                 lastRecordedHume = player.HumeShield;
-                playerLastHealth.Add(player, lastRecordedHume);
+                playerLastHume.Add(player, lastRecordedHume);
                 recordHealthOverride = true;
             }
 
@@ -216,6 +218,10 @@ namespace DemoSystem.SnapshotHandlers
             if (recordHealthOverride || playerHealth != lastRecordedHealth || playerArtifical != lastRecordedArtificial || playerHume != lastRecordedHume)
             {
                 QueuedSnapshots.Enqueue(new PlayerHealthSnapshot(player));
+
+                playerLastHealth[player] = playerHealth;
+                playerLastArtificial[player] = playerArtifical;
+                playerLastHume[player] = playerHume;
             }
         }
     }

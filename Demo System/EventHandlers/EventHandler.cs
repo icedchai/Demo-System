@@ -59,7 +59,7 @@ namespace DemoSystem.EventHandlers
 
         private void OnSpawned(SpawnedEventArgs e)
         {
-            if (!Plugin.Singleton.Recorder.IsRecording)
+            if (e.Player is null || e.Player.Role is null || !Plugin.Singleton.Recorder.IsRecording)
             {
                 return;
             }

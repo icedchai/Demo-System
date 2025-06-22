@@ -31,7 +31,7 @@ namespace DemoSystem.Snapshots.PlayerSnapshots
             if (SnapshotReader.Singleton.TryGetPlayer(Player, out Npc npc))
             {
                 npc.ReferenceHub.characterClassManager.GodMode = false;
-                npc.Kill(DamageType);
+                npc.Kill($"{DamageType}");
             }
         }
 
