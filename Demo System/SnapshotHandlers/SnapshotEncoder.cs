@@ -16,6 +16,7 @@ namespace DemoSystem.SnapshotHandlers
     {
         private static Dictionary<ushort, Type> idToType = new Dictionary<ushort, Type>();
 
+
         private static Dictionary<Type, ushort> typeToId = null;
 
         public static Dictionary<ushort, Type> IdToSnapshotType => idToType;
@@ -51,7 +52,7 @@ namespace DemoSystem.SnapshotHandlers
 
         public static bool RegisterSnapshotType(Type type)
         {
-            if (!type.IsAssignableFrom(typeof(Snapshot)))
+            if (type != typeof(Snapshot) && !typeof(Snapshot).IsAssignableFrom(type))
             {
                 return false;
             }
@@ -62,7 +63,7 @@ namespace DemoSystem.SnapshotHandlers
 
         public static bool UnregisterSnapshotType(Type type)
         {
-            if (!type.IsAssignableFrom(typeof(Snapshot)))
+            if (type != typeof(Snapshot) && !typeof(Snapshot).IsAssignableFrom(type))
             {
                 return false;
             }
