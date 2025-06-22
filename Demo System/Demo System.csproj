@@ -23,6 +23,12 @@
     <Reference Include="Assembly-CSharp-firstpass">
       <HintPath>..\..\..\dependancies\EXILEDREF\Assembly-CSharp-firstpass.dll</HintPath>
     </Reference>
+    <Reference Include="Mirror">
+      <HintPath>..\..\..\dependancies\EXILEDREF\Mirror.dll</HintPath>
+    </Reference>
+    <Reference Include="Pooling">
+      <HintPath>..\..\..\dependancies\EXILEDREF\Pooling.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine">
       <HintPath>..\..\..\dependancies\EXILEDREF\UnityEngine.dll</HintPath>
     </Reference>

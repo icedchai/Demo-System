@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Demo_System.Snapshots;
+using Demo_System.Snapshots.Interfaces;
 
 namespace DemoSystem.Extensions
 {
@@ -15,6 +16,10 @@ namespace DemoSystem.Extensions
         {
             { 1, typeof(PlayerTransformSnapshot) },
             { 2, typeof(EndOfFrameSnapshot) },
+            { 3, typeof(PlayerVerifiedSnapshot) },
+            { 4, typeof(PlayerSpawnedSnapshot) },
+            { 5, typeof(PlayerVoiceChatSnapshot) },
+            { 6, typeof(PlayerNoclipToggledSnapshot) },
         };
 
         private static Dictionary<Type, ushort> typeToId = null;
@@ -47,6 +52,11 @@ namespace DemoSystem.Extensions
             if (snapshot is IPlayerSnapshot playerSnapshot)
             {
                 writer.Write(playerSnapshot.Player);
+            }
+
+            if (snapshot is IRoleSnapshot roleSnapshot)
+            {
+                writer.Write(roleSnapshot.Role);
             }
 
             if (snapshot is IPositionSnapshot positionSnapshot)
@@ -83,6 +93,11 @@ namespace DemoSystem.Extensions
             if (snapshot is IPlayerSnapshot playerSnapshot)
             {
                 playerSnapshot.Player = reader.ReadInt32();
+            }
+
+            if (snapshot is IRoleSnapshot roleSnapshot)
+            {
+                roleSnapshot.Role = reader.ReadRoleTypeId();
             }
 
             if (snapshot is IPositionSnapshot positionSnapshot)

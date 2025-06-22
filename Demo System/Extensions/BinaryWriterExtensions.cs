@@ -23,5 +23,10 @@
         {
             binaryWriter.Write((byte)roleTypeId);
         }
+
+        public static void Write(this BinaryWriter binaryWriter, ItemType itemType)
+        {
+            binaryWriter.Write((int)itemType);
+        }
     }
 }

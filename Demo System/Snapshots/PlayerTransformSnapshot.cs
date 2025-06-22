@@ -23,7 +23,7 @@
         {
             Player = player.Id;
             Position = player.Position;
-            Rotation = player.Rotation;
+            Rotation = player.CameraTransform.rotation;
         }
 
         public int Player { get; set; }
@@ -39,6 +39,7 @@
             if (SnapshotReader.Singleton.TryGetPlayer(Player, out Npc npc))
             {
                 npc.Position = Position;
+                npc.Rotation = Rotation;
             }
         }
     }

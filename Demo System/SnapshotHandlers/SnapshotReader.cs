@@ -4,22 +4,31 @@ using DemoSystem.Snapshots;
 using Exiled.API.Features;
 using Exiled.API.Features.Toys;
 using MEC;
+using NetworkManagerUtils.Dummies;
 using PlayerRoles;
 
 namespace DemoSystem.SnapshotHandlers
 {
-    public class SnapshotReader
+    public class SnapshotReader : IDisposable
     {
+        public void Dispose()
+        {
+            FileStream.Dispose();
+            Reader.Dispose();
+            foreach (Npc npc in Players.Values)
+            {
+                npc.Destroy();
+            }
+        }
         public static SnapshotReader Singleton { get; set; }
 
         public Dictionary<int, Npc> Players { get; set; } = new Dictionary<int, Npc>();
 
-        public SnapshotReader()
+        public SnapshotReader(string path = @"recording-1")
         {
             try
             {
-
-                FileStream = new FileStream(@"B:/Recordings/recording-1", FileMode.Open, FileAccess.Read);
+                FileStream = new FileStream(@$"B:/Recordings/{path}", FileMode.Open, FileAccess.Read);
                 Reader = new BinaryReader(FileStream);
             }
             catch (Exception ex)
@@ -39,8 +48,8 @@ namespace DemoSystem.SnapshotHandlers
 
         public Npc SpawnPlayer(int id, string name, RoleTypeId? role = null)
         {
-            Npc npc = Npc.Spawn(name, role ?? RoleTypeId.Overwatch);
-            Players.Add(npc.Id, npc);
+            Npc npc = new Npc(DummyUtils.SpawnDummy(name));
+            Players.Add(id, npc);
             return npc;
         }
 
@@ -48,7 +57,6 @@ namespace DemoSystem.SnapshotHandlers
         {
             if (!Players.TryGetValue(id, out npc))
             {
-                npc = null;
                 return false;
             }
             return true;

@@ -5,6 +5,7 @@ using Exiled.API.Features;
 using Exiled.API.Features.Roles;
 using Exiled.Events.EventArgs.Player;
 using Exiled.Events.EventArgs.Server;
+using LabApi.Events.Arguments.PlayerEvents;
 using MEC;
 using System;
 using System.Collections.Generic;
@@ -23,12 +24,21 @@ namespace DemoSystem.EventHandlers
             Exiled.Events.Handlers.Server.RoundStarted += OnRoundStarted;
             Exiled.Events.Handlers.Server.RoundEnded += OnRoundEnded;
             Exiled.Events.Handlers.Player.Spawned += OnSpawned;
+            Exiled.Events.Handlers.Player.VoiceChatting += OnVoiceChatting;
+            Exiled.Events.Handlers.Player.Verified += OnPlayerVerified;
+
+            LabApi.Events.Handlers.PlayerEvents.ToggledNoclip += OnToggledNoclip;
         }
+
         public void UnsubscribeEvents()
         {
             Exiled.Events.Handlers.Server.RoundStarted -= OnRoundStarted;
             Exiled.Events.Handlers.Server.RoundEnded -= OnRoundEnded;
             Exiled.Events.Handlers.Player.Spawned -= OnSpawned;
+            Exiled.Events.Handlers.Player.VoiceChatting -= OnVoiceChatting;
+            Exiled.Events.Handlers.Player.Verified -= OnPlayerVerified;
+
+            LabApi.Events.Handlers.PlayerEvents.ToggledNoclip -= OnToggledNoclip;
         }
 
         private void OnRoundStarted()
@@ -47,7 +57,43 @@ namespace DemoSystem.EventHandlers
             {
                 return;
             }
+
             Plugin.Singleton.Recorder.QueuedSnapshots.Enqueue(new PlayerSpawnedSnapshot() { Player = e.Player.Id, Role = e.Player.Role.Type, SpawnReason = e.Reason, SpawnFlags = e.SpawnFlags });
+        }
+
+        private void OnVoiceChatting(VoiceChattingEventArgs e)
+        {
+            if (!Plugin.Singleton.Recorder.IsRecording)
+            {
+                return;
+            }
+
+            Plugin.Singleton.Recorder.QueuedSnapshots.Enqueue(new PlayerVoiceChatSnapshot(e.VoiceMessage));
+        }
+
+        private void OnPlayerVerified(VerifiedEventArgs e)
+        {
+            if (!Plugin.Singleton.Recorder.IsRecording)
+            {
+                return;
+            }
+
+            Plugin.Singleton.Recorder.QueuedSnapshots.Enqueue(new PlayerVerifiedSnapshot(e.Player));
+        }
+
+        private void OnToggledNoclip(PlayerToggledNoclipEventArgs e)
+        {
+            if (Plugin.Singleton.Recorder.IsRecording)
+            {
+                return;
+            }
+
+            Plugin.Singleton.Recorder.QueuedSnapshots.Enqueue(new PlayerNoclipToggledSnapshot(e.Player, e.IsNoclipping));
+        }
+
+        private void OnChangingItem(ChangingItemEventArgs e)
+        {
+
         }
     }
 }

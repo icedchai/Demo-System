@@ -29,5 +29,11 @@
             byte number = binaryReader.ReadByte();
             return (RoleTypeId)number;
         }
+
+        public static ItemType ReadItemType(this BinaryReader binaryReader)
+        {
+            int number = binaryReader.ReadInt32();
+            return (ItemType)number;
+        }
     }
 }

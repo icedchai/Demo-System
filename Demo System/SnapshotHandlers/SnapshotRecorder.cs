@@ -3,6 +3,7 @@ using DemoSystem.Extensions;
 using DemoSystem.Snapshots;
 using Exiled.API.Features;
 using MEC;
+using System.Runtime.InteropServices;
 using UnityEngine;
 
 namespace DemoSystem.SnapshotHandlers
@@ -29,12 +30,12 @@ namespace DemoSystem.SnapshotHandlers
 
         public void StartRecording()
         {
-            FileStream = new FileStream($"B:/Recordings/recording-{Round.StartedTime.ToString("yyyy-dd-M--HH-mm-ss")}", FileMode.Append, FileAccess.Write);
+            FileStream = new FileStream($"B:/Recordings/recording-{DateTime.Now.ToString("yyyy-dd-M--HH-mm-ss")}", FileMode.Append, FileAccess.Write);
             IsRecording = true;
 
             foreach (Player player in Player.List)
             {
-                QueuedSnapshots.Enqueue(new PlayerVerifiedSnapshot() { Player = player.Id, Nickname = player.Nickname });
+                QueuedSnapshots.Enqueue(new PlayerVerifiedSnapshot(player));
                 QueuedSnapshots.Enqueue(new PlayerSpawnedSnapshot() { Player = player.Id, Role = player.Role.Type, SpawnFlags = PlayerRoles.RoleSpawnFlags.None });
             }
             Timing.RunCoroutine(EncodeSnapshots());

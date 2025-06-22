@@ -7,11 +7,15 @@ using Exiled.API.Enums;
 using Exiled.API.Features;
 using Exiled.API.Interfaces;
 using PlayerRoles;
+using PlayerRoles.FirstPersonControl;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEngine;
+using Vector3 = UnityEngine.Vector3;
 
 namespace Demo_System.Snapshots
 {

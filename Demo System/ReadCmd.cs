@@ -19,7 +19,14 @@ namespace Demo_System
 
         public bool Execute(ArraySegment<string> arguments, ICommandSender sender, out string response)
         {
-            SnapshotReader.Singleton = new SnapshotReader();
+            string path = "recording-1";
+
+            if (arguments.Count > 0)
+            {
+                path = arguments.At(0);
+            }
+
+            SnapshotReader.Singleton = new SnapshotReader(path);
             response = "Got it";
             return true;
         }
