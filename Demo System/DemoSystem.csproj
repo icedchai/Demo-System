@@ -20,6 +20,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Reference Include="0Harmony">
+      <HintPath>..\..\..\dependancies\EXILEDREF\0Harmony.dll</HintPath>
+    </Reference>
     <Reference Include="Assembly-CSharp-firstpass">
       <HintPath>..\..\..\dependancies\EXILEDREF\Assembly-CSharp-firstpass.dll</HintPath>
     </Reference>

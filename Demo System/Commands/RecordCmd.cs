@@ -1,5 +1,4 @@
 ﻿using CommandSystem;
-using DemoSystem;
 using DemoSystem.SnapshotHandlers;
 using System;
 using System.Collections.Generic;
@@ -7,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DemoSystem
+namespace DemoSystem.Commands
 {
     [CommandHandler(typeof(RemoteAdminCommandHandler))]
     internal class RecordCmd : ICommand

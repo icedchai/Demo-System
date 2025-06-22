@@ -15,6 +15,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Profiling;
+using Mirror;
 
 namespace DemoSystem.EventHandlers
 {
@@ -27,6 +28,8 @@ namespace DemoSystem.EventHandlers
             Exiled.Events.Handlers.Player.Spawned += OnSpawned;
             Exiled.Events.Handlers.Player.VoiceChatting += OnVoiceChatting;
             Exiled.Events.Handlers.Player.Verified += OnPlayerVerified;
+            Exiled.Events.Handlers.Player.ChangedItem += OnChangedItem;
+            Exiled.Events.Handlers.Player.Died += OnDied;
 
             LabApi.Events.Handlers.PlayerEvents.ToggledNoclip += OnToggledNoclip;
         }
@@ -38,6 +41,8 @@ namespace DemoSystem.EventHandlers
             Exiled.Events.Handlers.Player.Spawned -= OnSpawned;
             Exiled.Events.Handlers.Player.VoiceChatting -= OnVoiceChatting;
             Exiled.Events.Handlers.Player.Verified -= OnPlayerVerified;
+            Exiled.Events.Handlers.Player.ChangedItem -= OnChangedItem;
+            Exiled.Events.Handlers.Player.Died -= OnDied;
 
             LabApi.Events.Handlers.PlayerEvents.ToggledNoclip -= OnToggledNoclip;
         }
@@ -84,7 +89,7 @@ namespace DemoSystem.EventHandlers
 
         private void OnToggledNoclip(PlayerToggledNoclipEventArgs e)
         {
-            if (Plugin.Singleton.Recorder.IsRecording)
+            if (!Plugin.Singleton.Recorder.IsRecording)
             {
                 return;
             }
@@ -94,7 +99,22 @@ namespace DemoSystem.EventHandlers
 
         private void OnChangedItem(ChangedItemEventArgs e)
         {
+            if (!Plugin.Singleton.Recorder.IsRecording)
+            {
+                return;
+            }
 
+            Plugin.Singleton.Recorder.QueuedSnapshots.Enqueue(new PlayerChangedItemSnapshot(e.Player));
+        }
+
+        private void OnDied(DiedEventArgs e)
+        {
+            if (!Plugin.Singleton.Recorder.IsRecording)
+            {
+                return;
+            }
+
+            Plugin.Singleton.Recorder.QueuedSnapshots.Enqueue(new PlayerDiedSnapshot(e.DamageHandler));
         }
     }
 }

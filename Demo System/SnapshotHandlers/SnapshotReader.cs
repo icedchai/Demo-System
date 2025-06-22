@@ -49,6 +49,7 @@ namespace DemoSystem.SnapshotHandlers
         public Npc SpawnPlayer(int id, string name, RoleTypeId? role = null)
         {
             Npc npc = new Npc(DummyUtils.SpawnDummy(name));
+            npc.GroupName = "Actor";
             Players.Add(id, npc);
             return npc;
         }
@@ -57,13 +58,20 @@ namespace DemoSystem.SnapshotHandlers
         {
             if (!Players.TryGetValue(id, out npc))
             {
-                return false;
+                npc = SpawnPlayer(id, $"Unknown Actor ID: {id}");
             }
             return true;
         }
 
         private IEnumerator<float> ReadAll()
         {
+            int demoVersion = Reader.ReadInt32();
+            if (demoVersion != SnapshotRecorder.Version)
+            {
+                Log.Error($"DemoRecorder version : Expected {SnapshotRecorder.Version} but got {demoVersion}");
+                yield break;
+            }
+
             while (true)
             {
                 if (SnapshotEncoder.Deserialize(Reader, out Snapshot snapshot))

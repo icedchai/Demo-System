@@ -1,5 +1,6 @@
 ﻿using System;
 using DemoSystem.EventHandlers;
+using DemoSystem.Patches;
 using DemoSystem.SnapshotHandlers;
 using DemoSystem.Snapshots;
 using Exiled.API.Features;
@@ -18,6 +19,8 @@ namespace DemoSystem
         /// <inheritdoc/>
         public override string Prefix => "demos";
 
+        public Patcher Patcher { get; set; }
+
         public static Plugin Singleton { get; set; }
 
         public SnapshotRecorder Recorder { get; set; }
@@ -34,6 +37,9 @@ namespace DemoSystem
 
             SnapshotEncoder.RegisterSnapshotTypes();
 
+            Patcher = new Patcher();
+            Patcher.Patch();
+
             foreach (var kvp in SnapshotEncoder.IdToSnapshotType)
             {
                 Log.Info($"{kvp.Key} : {kvp.Value.Name}");
@@ -46,6 +52,7 @@ namespace DemoSystem
         public override void OnDisabled()
         {
             base.OnDisabled();
+            Patcher.UnpatchAll();
             RoundEventHandler.UnsubscribeEvents();
             RoundEventHandler = null;
         }

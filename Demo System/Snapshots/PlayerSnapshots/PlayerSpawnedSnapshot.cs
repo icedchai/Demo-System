@@ -50,6 +50,7 @@ namespace DemoSystem.Snapshots.PlayerSnapshots
             if (SnapshotReader.Singleton.TryGetPlayer(Player, out Npc npc))
             {
                 npc.Role.Set(Role, SpawnReason, SpawnFlags);
+                npc.ReferenceHub.characterClassManager.GodMode = true;
             }
         }
     }

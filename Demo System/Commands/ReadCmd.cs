@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DemoSystem
+namespace DemoSystem.Commands
 {
     [CommandHandler(typeof(RemoteAdminCommandHandler))]
     public class ReadCmd : ICommand
