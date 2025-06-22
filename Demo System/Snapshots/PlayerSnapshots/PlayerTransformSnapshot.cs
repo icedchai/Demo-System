@@ -14,7 +14,7 @@ namespace DemoSystem.Snapshots.PlayerSnapshots
     /// <summary>
     /// Represents a player's position at a point in time, as well as their rotation.
     /// </summary>
-    public class PlayerTransformSnapshot : Snapshot, IPlayerSnapshot, IPositionSnapshot, IRotationSnapshot
+    public class PlayerTransformSnapshot : Snapshot, IPlayerSnapshot, IPositionSnapshot, IRotationSnapshot, IScaleSnapshot
     {
         public PlayerTransformSnapshot()
         {
@@ -24,6 +24,7 @@ namespace DemoSystem.Snapshots.PlayerSnapshots
         public PlayerTransformSnapshot(Player player)
         {
             Player = player.Id;
+            Scale = player.Scale;
             Position = player.Position;
             Rotation = player.CameraTransform.rotation;
         }
@@ -31,6 +32,8 @@ namespace DemoSystem.Snapshots.PlayerSnapshots
         public int Player { get; set; }
 
         public Vector3 Position { get; set; }
+
+        public Vector3 Scale { get; set; }
 
         public Quaternion Rotation { get; set; }
 
@@ -42,6 +45,7 @@ namespace DemoSystem.Snapshots.PlayerSnapshots
             {
                 npc.Position = Position;
                 npc.Rotation = Rotation;
+                npc.Scale = Scale;
             }
         }
     }

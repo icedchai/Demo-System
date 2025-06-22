@@ -112,6 +112,11 @@ namespace DemoSystem.SnapshotHandlers
                 writer.Write(positionSnapshot.Position);
             }
 
+            if (snapshot is IScaleSnapshot scaleSnapshot)
+            {
+                writer.Write(scaleSnapshot.Scale);
+            }
+
             if (snapshot is IRotationSnapshot rotationSnapshot)
             {
                 writer.Write(rotationSnapshot.Rotation);
@@ -151,6 +156,11 @@ namespace DemoSystem.SnapshotHandlers
             if (snapshot is IPositionSnapshot positionSnapshot)
             {
                 positionSnapshot.Position = reader.ReadVector3();
+            }
+
+            if (snapshot is IScaleSnapshot scaleSnapshot)
+            {
+                scaleSnapshot.Scale = reader.ReadVector3();
             }
 
             if (snapshot is IRotationSnapshot rotationSnapshot)

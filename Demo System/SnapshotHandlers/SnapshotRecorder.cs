@@ -41,7 +41,8 @@ namespace DemoSystem.SnapshotHandlers
             }
             Timing.RunCoroutine(EncodeSnapshots());
             Timing.RunCoroutine(WriteFile());
-            Timing.RunCoroutine(RecordPositions());
+            Timing.RunCoroutine(RecordPlayerTransforms());
+            Timing.RunCoroutine(WriteEndOfFrameSnapshots());
         }
 
         public void StopRecording()
@@ -107,11 +108,22 @@ namespace DemoSystem.SnapshotHandlers
             }
         }
 
+        private IEnumerator<float> WriteEndOfFrameSnapshots()
+        {
+            while (IsRecording)
+            {
+                QueuedSnapshots.Enqueue(new EndOfFrameSnapshot());
+                yield return Timing.WaitForOneFrame;
+            }
+        }
+
         Dictionary<Player, Vector3> playerLastPos { get; set; } = new Dictionary<Player, Vector3>();
 
         Dictionary<Player, Quaternion> playerLastRot { get; set; } = new Dictionary<Player, Quaternion>();
 
-        private IEnumerator<float> RecordPositions()
+        Dictionary<Player, Vector3> playerLastScale { get; set; } = new Dictionary<Player, Vector3>();
+
+        private IEnumerator<float> RecordPlayerTransforms()
         {
             while (IsRecording)
             {
@@ -120,10 +132,18 @@ namespace DemoSystem.SnapshotHandlers
                     if (player.Role.IsAlive)
                     {
                         bool recordPosOverride = false;
+
                         if (!playerLastPos.TryGetValue(player, out Vector3 pos))
                         {
                             pos = player.Position;
                             playerLastPos.Add(player, pos);
+                            recordPosOverride = true;
+                        }
+
+                        if (!playerLastScale.TryGetValue(player, out Vector3 scale))
+                        {
+                            scale = player.Scale;
+                            playerLastScale.Add(player, scale);
                             recordPosOverride = true;
                         }
 
@@ -134,19 +154,22 @@ namespace DemoSystem.SnapshotHandlers
                             recordPosOverride = true;
                         }
 
-                        Vector3 playerPos = player.Position;
-                        Quaternion playerRot = player.Rotation;
-
-                        if (recordPosOverride || playerPos != pos || playerRot != rot)
+                        if (recordPosOverride)
                         {
-                            QueuedSnapshots.Enqueue(new PlayerTransformSnapshot(player));
-                            playerLastPos[player] = playerPos;
-                            playerLastRot[player] = playerRot;
+                            Vector3 playerScale = player.Scale;
+                            Vector3 playerPos = player.Position;
+                            Quaternion playerRot = player.Rotation;
+                            if (playerPos != pos || playerRot != rot)
+                            {
+                                QueuedSnapshots.Enqueue(new PlayerTransformSnapshot(player));
+                                playerLastPos[player] = playerPos;
+                                playerLastRot[player] = playerRot;
+                                playerLastScale[player] = playerScale;
+                            }
                         }
                     }
                 }
                 yield return Timing.WaitForOneFrame;
-                QueuedSnapshots.Enqueue(new EndOfFrameSnapshot());
             }
         }
     }
