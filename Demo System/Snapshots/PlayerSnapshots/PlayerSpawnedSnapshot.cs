@@ -1,4 +1,4 @@
-﻿using Demo_System.Snapshots.Interfaces;
+﻿using DemoSystem.Snapshots.Interfaces;
 using DemoSystem.Extensions;
 using DemoSystem.SnapshotHandlers;
 using DemoSystem.Snapshots;
@@ -17,7 +17,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using Vector3 = UnityEngine.Vector3;
 
-namespace Demo_System.Snapshots
+namespace DemoSystem.Snapshots.PlayerSnapshots
 {
     public class PlayerSpawnedSnapshot : Snapshot, IPlayerSnapshot, IRoleSnapshot
     {

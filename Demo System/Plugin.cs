@@ -22,7 +22,7 @@ namespace DemoSystem
 
         public SnapshotRecorder Recorder { get; set; }
 
-        public RoundEventHandler RoundEventHandler { get; set; } = new RoundEventHandler();
+        public EventHandlers.EventHandler RoundEventHandler { get; set; } = new EventHandlers.EventHandler();
 
         /// <inheritdoc/>
         public override Version Version => new Version(0, 0, 1);
@@ -31,7 +31,7 @@ namespace DemoSystem
         {
             base.OnEnabled();
             Singleton = this;
-            RoundEventHandler = new RoundEventHandler();
+            RoundEventHandler = new EventHandlers.EventHandler();
             RoundEventHandler.SubscribeEvents();
         }
 

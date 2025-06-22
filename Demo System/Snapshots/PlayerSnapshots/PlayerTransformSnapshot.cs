@@ -1,4 +1,6 @@
-﻿namespace DemoSystem.Snapshots
+﻿using DemoSystem.Snapshots;
+
+namespace DemoSystem.Snapshots.PlayerSnapshots
 {
     using DemoSystem.Extensions;
     using DemoSystem.SnapshotHandlers;

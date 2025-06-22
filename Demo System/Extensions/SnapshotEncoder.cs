@@ -5,8 +5,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Demo_System.Snapshots;
-using Demo_System.Snapshots.Interfaces;
+using DemoSystem.Snapshots;
+using DemoSystem.Snapshots.Interfaces;
+using DemoSystem.Snapshots.PlayerSnapshots;
 
 namespace DemoSystem.Extensions
 {

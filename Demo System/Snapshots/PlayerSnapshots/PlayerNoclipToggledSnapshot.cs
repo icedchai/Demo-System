@@ -10,7 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 
-namespace Demo_System.Snapshots
+namespace DemoSystem.Snapshots.PlayerSnapshots
 {
     public class PlayerNoclipToggledSnapshot : Snapshot, IPlayerSnapshot
     {
@@ -32,11 +32,13 @@ namespace Demo_System.Snapshots
             {
                 if (Enabled)
                 {
-                    fpcRole.FpcModule.Motor.GravityController.Gravity = Vector3.zero;
+                    fpcRole.FpcModule.Noclip.IsActive = true;
+                    fpcRole.FpcModule.Noclip.UpdateNoclip();
                 }
                 else
                 {
-                    fpcRole.FpcModule.Motor.GravityController.Gravity = Vector3.one;
+                    fpcRole.FpcModule.Noclip.IsActive = false;
+                    fpcRole.FpcModule.Noclip.UpdateNoclip();
                 }
             }
         }

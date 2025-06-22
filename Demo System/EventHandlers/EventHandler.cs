@@ -1,4 +1,5 @@
-﻿using Demo_System.Snapshots;
+﻿using DemoSystem.Snapshots;
+using DemoSystem.Snapshots.PlayerSnapshots;
 using DemoSystem.SnapshotHandlers;
 using DemoSystem.Snapshots;
 using Exiled.API.Features;
@@ -17,7 +18,7 @@ using UnityEngine.Profiling;
 
 namespace DemoSystem.EventHandlers
 {
-    public class RoundEventHandler
+    public class EventHandler
     {
         public void SubscribeEvents()
         {
@@ -63,7 +64,7 @@ namespace DemoSystem.EventHandlers
 
         private void OnVoiceChatting(VoiceChattingEventArgs e)
         {
-            if (!Plugin.Singleton.Recorder.IsRecording)
+            if (!Plugin.Singleton.Config.RecordVoiceChat || !Plugin.Singleton.Recorder.IsRecording)
             {
                 return;
             }
@@ -91,7 +92,7 @@ namespace DemoSystem.EventHandlers
             Plugin.Singleton.Recorder.QueuedSnapshots.Enqueue(new PlayerNoclipToggledSnapshot(e.Player, e.IsNoclipping));
         }
 
-        private void OnChangingItem(ChangingItemEventArgs e)
+        private void OnChangedItem(ChangedItemEventArgs e)
         {
 
         }

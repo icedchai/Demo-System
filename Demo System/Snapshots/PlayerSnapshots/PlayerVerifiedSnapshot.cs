@@ -9,7 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Demo_System.Snapshots
+namespace DemoSystem.Snapshots.PlayerSnapshots
 {
     public class PlayerVerifiedSnapshot : Snapshot, IPlayerSnapshot
     {

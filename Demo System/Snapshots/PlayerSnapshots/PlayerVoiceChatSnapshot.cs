@@ -13,7 +13,7 @@ using VoiceChat;
 using VoiceChat.Networking;
 using Snapshot = DemoSystem.Snapshots.Snapshot;
 
-namespace Demo_System.Snapshots
+namespace DemoSystem.Snapshots.PlayerSnapshots
 {
     internal class PlayerVoiceChatSnapshot : Snapshot, IPlayerSnapshot
     {

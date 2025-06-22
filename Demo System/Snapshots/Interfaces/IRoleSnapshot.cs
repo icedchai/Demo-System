@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Demo_System.Snapshots.Interfaces
+namespace DemoSystem.Snapshots.Interfaces
 {
     public interface IRoleSnapshot
     {

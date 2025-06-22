@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Demo_System.Snapshots
+namespace DemoSystem.Snapshots
 {
     public class EndOfFrameSnapshot : Snapshot
     {
