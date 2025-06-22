@@ -32,10 +32,7 @@ namespace DemoSystem
             base.OnEnabled();
             Singleton = this;
 
-            foreach (Type type in Assembly.GetTypes().Where(t => t != typeof(Snapshot) && typeof(Snapshot).IsAssignableFrom(t)))
-            {
-                SnapshotEncoder.RegisterSnapshotType(type);
-            }
+            SnapshotEncoder.RegisterSnapshotTypes();
 
             foreach (var kvp in SnapshotEncoder.IdToSnapshotType)
             {

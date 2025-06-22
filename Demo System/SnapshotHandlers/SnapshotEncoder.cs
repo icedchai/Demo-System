@@ -9,6 +9,7 @@ using DemoSystem.Snapshots;
 using DemoSystem.Snapshots.Interfaces;
 using DemoSystem.Snapshots.PlayerSnapshots;
 using DemoSystem.Extensions;
+using System.Reflection;
 
 namespace DemoSystem.SnapshotHandlers
 {
@@ -40,6 +41,20 @@ namespace DemoSystem.SnapshotHandlers
             }
         }
 
+        /// <summary>
+        /// Registers all types deriving from <see cref="Snapshot"/> in the current assembly.
+        /// </summary>
+        public static void RegisterSnapshotTypes()
+        {
+            Assembly assembly = Assembly.GetExecutingAssembly();
+            List<Type> validTypes = assembly.GetTypes().Where(t => t != typeof(Snapshot) && typeof(Snapshot).IsAssignableFrom(t)).ToList();
+            validTypes.Sort((a, b) => a.FullName.CompareTo(b.FullName));
+            foreach (Type type in validTypes)
+            {
+                SnapshotEncoder.RegisterSnapshotType(type);
+            }
+        }
+
         public static void RegisterSnapshotType<T>() where T : Snapshot
         {
             RegisterSnapshotType(typeof(T));
@@ -57,7 +72,7 @@ namespace DemoSystem.SnapshotHandlers
                 return false;
             }
 
-            idToType.Add((ushort)idToType.Count, type);
+            idToType.Add((ushort)(idToType.Count + 1), type);
             return true;
         }
 
