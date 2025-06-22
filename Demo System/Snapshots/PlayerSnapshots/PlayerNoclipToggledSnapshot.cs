@@ -2,6 +2,7 @@
 using DemoSystem.Snapshots;
 using DemoSystem.Snapshots.Interfaces;
 using Exiled.API.Features;
+using Exiled.API.Features.Roles;
 using PlayerRoles.FirstPersonControl;
 using System;
 using System.Collections.Generic;
@@ -28,18 +29,14 @@ namespace DemoSystem.Snapshots.PlayerSnapshots
         public override void ReadSnapshot()
         {
             base.ReadSnapshot();
-            if (SnapshotReader.Singleton.TryGetPlayer(Player, out Npc npc) && npc.Role.Base is IFpcRole fpcRole)
+            if (SnapshotReader.Singleton.TryGetPlayer(Player, out Npc npc) && npc.Role is FpcRole fpcRole)
             {
-                if (Enabled)
+                if (!npc.IsNoclipPermitted)
                 {
-                    fpcRole.FpcModule.Noclip.IsActive = true;
-                    fpcRole.FpcModule.Noclip.UpdateNoclip();
+                    npc.IsNoclipPermitted = true;
                 }
-                else
-                {
-                    fpcRole.FpcModule.Noclip.IsActive = false;
-                    fpcRole.FpcModule.Noclip.UpdateNoclip();
-                }
+
+                fpcRole.IsNoclipEnabled = Enabled;
             }
         }
 

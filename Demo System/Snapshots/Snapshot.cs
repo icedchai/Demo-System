@@ -1,4 +1,4 @@
-﻿using DemoSystem.Extensions;
+﻿using DemoSystem.SnapshotHandlers;
 using DemoSystem.Snapshots.Interfaces;
 
 namespace DemoSystem.Snapshots

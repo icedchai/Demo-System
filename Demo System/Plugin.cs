@@ -31,6 +31,17 @@ namespace DemoSystem
         {
             base.OnEnabled();
             Singleton = this;
+
+            foreach (Type type in Assembly.GetTypes().Where(t => t.IsAssignableFrom(typeof(Snapshot))))
+            {
+                SnapshotEncoder.RegisterSnapshotType(type);
+            }
+
+            foreach (var kvp in SnapshotEncoder.IdToSnapshotType)
+            {
+                Log.Info($"{kvp.Key} : {kvp.Value.Name}");
+            }
+
             RoundEventHandler = new EventHandlers.EventHandler();
             RoundEventHandler.SubscribeEvents();
         }

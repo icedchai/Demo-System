@@ -8,20 +8,13 @@ using System.Threading.Tasks;
 using DemoSystem.Snapshots;
 using DemoSystem.Snapshots.Interfaces;
 using DemoSystem.Snapshots.PlayerSnapshots;
+using DemoSystem.Extensions;
 
-namespace DemoSystem.Extensions
+namespace DemoSystem.SnapshotHandlers
 {
     public static class SnapshotEncoder
     {
-        private static Dictionary<ushort, Type> idToType = new Dictionary<ushort, Type>()
-        {
-            { 1, typeof(PlayerTransformSnapshot) },
-            { 2, typeof(EndOfFrameSnapshot) },
-            { 3, typeof(PlayerVerifiedSnapshot) },
-            { 4, typeof(PlayerSpawnedSnapshot) },
-            { 5, typeof(PlayerVoiceChatSnapshot) },
-            { 6, typeof(PlayerNoclipToggledSnapshot) },
-        };
+        private static Dictionary<ushort, Type> idToType = new Dictionary<ushort, Type>();
 
         private static Dictionary<Type, ushort> typeToId = null;
 
@@ -31,7 +24,7 @@ namespace DemoSystem.Extensions
         {
             get
             {
-                if (typeToId is null)
+                if (typeToId is null || typeToId.Count != idToType.Count)
                 {
                     Dictionary<Type, ushort> temporaryDict = new Dictionary<Type, ushort>();
 
@@ -44,6 +37,44 @@ namespace DemoSystem.Extensions
                 }
                 return typeToId;
             }
+        }
+
+        public static void RegisterSnapshotType<T>() where T : Snapshot
+        {
+            RegisterSnapshotType(typeof(T));
+        }
+
+        public static void UnregisterSnapshotType<T>() where T : Snapshot
+        {
+            UnregisterSnapshotType(typeof(T));
+        }
+
+        public static bool RegisterSnapshotType(Type type)
+        {
+            if (!type.IsAssignableFrom(typeof(Snapshot)))
+            {
+                return false;
+            }
+
+            idToType.Add((ushort)idToType.Count, type);
+            return true;
+        }
+
+        public static bool UnregisterSnapshotType(Type type)
+        {
+            if (!type.IsAssignableFrom(typeof(Snapshot)))
+            {
+                return false;
+            }
+
+            foreach (var kvp in idToType)
+            {
+                if (kvp.Value == type)
+                {
+                    idToType.Remove(kvp.Key);
+                }
+            }
+            return true;
         }
 
         public static void Serialize(this Snapshot snapshot, BinaryWriter writer)
