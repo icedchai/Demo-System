@@ -1,5 +1,7 @@
 ﻿namespace DemoSystem.Extensions
 {
+    using Exiled.API.Structs;
+    using InventorySystem.Items.Firearms.Attachments;
     using PlayerRoles;
     using UnityEngine;
 

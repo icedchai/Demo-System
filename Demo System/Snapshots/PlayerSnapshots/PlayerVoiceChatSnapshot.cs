@@ -10,13 +10,31 @@ using System.Text;
 using System.Threading.Tasks;
 using Utils.Networking;
 using VoiceChat;
+using VoiceChat.Codec;
+using VoiceChat.Codec.Enums;
 using VoiceChat.Networking;
+using NVorbis;
+using System.IO;
+using System.Diagnostics;
 using Snapshot = DemoSystem.Snapshots.Snapshot;
+using NAudio.Wave;
+using NAudio.Vorbis;
+using UnityEngine;
 
 namespace DemoSystem.Snapshots.PlayerSnapshots
 {
     internal class PlayerVoiceChatSnapshot : Snapshot, IPlayerSnapshot
     {
+        internal static OpusEncoder OpusEncoder { get; set; } = new OpusEncoder(OpusApplicationType.Audio);
+
+        internal static OpusDecoder OpusDecoder { get; set; } = new OpusDecoder();
+
+        internal static Dictionary<int, FileStream> PlayerIdToFileStream { get; set; } = new Dictionary<int, FileStream>();
+
+        internal static Dictionary<int, WaveFileWriter> PlayerIdToWaveWriter { get; set; } = new Dictionary<int, WaveFileWriter>();
+
+        internal static Dictionary<int, WaveFileReader> PlayerIdToWaveReader { get; set; } = new Dictionary<int, WaveFileReader>();
+
         public PlayerVoiceChatSnapshot()
         {
         }
@@ -25,46 +43,62 @@ namespace DemoSystem.Snapshots.PlayerSnapshots
         {
             Player = message.Speaker.PlayerId;
             Channel = message.Channel;
-            DataLength = message.DataLength;
-            Data = message.Data;
+            Samples = new float[24000];
+            Length = OpusDecoder.Decode(message.Data, message.DataLength, Samples);
         }
 
         public override void DeserializeSpecial(BinaryReader reader)
         {
             base.DeserializeSpecial(reader);
             Channel = (VoiceChatChannel)reader.ReadInt32();
-            DataLength = reader.ReadInt32();
-            Data = new byte[reader.ReadInt32()];
-
-            for (int i = 0; i < Data.Length; i++)
+            if (!PlayerIdToFileStream.TryGetValue(Player, out FileStream fileStream))
             {
-                Data[i] = reader.ReadByte();
+                fileStream = new FileStream($"{Plugin.Singleton.Config.RecordingsDirectory}recording-{Plugin.Singleton.Recorder.BeganRecording.ToString("yyyy-dd-M--HH-mm-ss")}-{Player}.wav", FileMode.OpenOrCreate, FileAccess.ReadWrite);
+                PlayerIdToFileStream.Add(Player, fileStream);
             }
+            if (!PlayerIdToWaveReader.TryGetValue(Player, out WaveFileReader waveReader))
+            {
+                PlayerIdToWaveReader.Add(Player, (waveReader = new WaveFileReader(fileStream)));
+            }
+            int samplesToTake = (int)(Time.deltaTime * 48000);
+            float[] _pcm = new float[samplesToTake];
+            for (int i = 0; i < samplesToTake; i++)
+            {
+                float[] floats = waveReader.ReadNextSampleFrame();
+                if (floats is null)
+                {
+                    return;
+                }
+                _pcm[i] = floats[0];
+            }
+            Samples = _pcm;
         }
 
         public override void SerializeSpecial(BinaryWriter writer)
         {
             base.SerializeSpecial(writer);
             writer.Write((int)Channel);
-            writer.Write(DataLength);
-            writer.Write(Data.Length);
-
-            for (int i = 0; i < Data.Length; i++)
+            WaveFileWriter waveWriter;
+            if (!PlayerIdToFileStream.TryGetValue(Player, out FileStream fileStream))
             {
-                writer.Write(Data[i]);
+                fileStream = new FileStream($"{Plugin.Singleton.Config.RecordingsDirectory}recording-{Plugin.Singleton.Recorder.BeganRecording.ToString("yyyy-dd-M--HH-mm-ss")}-{Player}.wav", FileMode.OpenOrCreate, FileAccess.ReadWrite);
+                PlayerIdToFileStream.Add(Player, fileStream);
             }
+            if (!PlayerIdToWaveWriter.TryGetValue(Player, out waveWriter))
+            {
+                PlayerIdToWaveWriter.Add(Player, (waveWriter = new WaveFileWriter(fileStream, new WaveFormat(48000, 1))));
+            }
+            waveWriter.WriteSamples(Samples, 0, Length);
         }
 
         public override void ReadSnapshot()
         {
             base.ReadSnapshot();
 
-            if (SnapshotReader.Singleton.TryGetPlayer(Player, out Npc npc))
+            if (SnapshotReader.Singleton.TryGetActor(Player, out Npc npc))
             {
                 VoiceMessage message = new VoiceMessage();
                 message.Channel = Channel;
-                message.Data = Data;
-                message.DataLength = DataLength;
                 message.Speaker = npc.ReferenceHub;
                 message.SendToAuthenticated();
             }
@@ -74,8 +108,8 @@ namespace DemoSystem.Snapshots.PlayerSnapshots
 
         public VoiceChatChannel Channel { get; set; }
 
-        public int DataLength { get; set; }
+        public float[] Samples { get; set; }
 
-        public byte[] Data { get; set; }
+        public int Length { get; set; }
     }
 }

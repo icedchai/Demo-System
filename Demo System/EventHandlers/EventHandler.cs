@@ -16,6 +16,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Profiling;
 using Mirror;
+using UnityEngine.Assertions.Must;
 
 namespace DemoSystem.EventHandlers
 {
@@ -23,43 +24,59 @@ namespace DemoSystem.EventHandlers
     {
         public void SubscribeEvents()
         {
-            Exiled.Events.Handlers.Server.RoundStarted += OnRoundStarted;
-            Exiled.Events.Handlers.Server.RoundEnded += OnRoundEnded;
+            Exiled.Events.Handlers.Server.WaitingForPlayers += OnWaitingForPlayers;
             Exiled.Events.Handlers.Player.Spawned += OnSpawned;
             Exiled.Events.Handlers.Player.VoiceChatting += OnVoiceChatting;
             Exiled.Events.Handlers.Player.Verified += OnPlayerVerified;
             Exiled.Events.Handlers.Player.ChangedItem += OnChangedItem;
             Exiled.Events.Handlers.Player.Died += OnDied;
+            Exiled.Events.Handlers.Player.Shot += OnShot;
 
             LabApi.Events.Handlers.PlayerEvents.ToggledNoclip += OnToggledNoclip;
         }
 
         public void UnsubscribeEvents()
         {
-            Exiled.Events.Handlers.Server.RoundStarted -= OnRoundStarted;
-            Exiled.Events.Handlers.Server.RoundEnded -= OnRoundEnded;
+            Exiled.Events.Handlers.Server.WaitingForPlayers -= OnWaitingForPlayers;
             Exiled.Events.Handlers.Player.Spawned -= OnSpawned;
             Exiled.Events.Handlers.Player.VoiceChatting -= OnVoiceChatting;
             Exiled.Events.Handlers.Player.Verified -= OnPlayerVerified;
             Exiled.Events.Handlers.Player.ChangedItem -= OnChangedItem;
             Exiled.Events.Handlers.Player.Died -= OnDied;
+            Exiled.Events.Handlers.Player.Shot -= OnShot;
 
             LabApi.Events.Handlers.PlayerEvents.ToggledNoclip -= OnToggledNoclip;
         }
 
-        private void OnRoundStarted()
+        private void OnWaitingForPlayers()
         {
+            if (Plugin.Singleton.Recorder is not null && Plugin.Singleton.Recorder.IsRecording)
+            {
+                Plugin.Singleton.Recorder.StopRecording();
+
+            }
+
             Plugin.Singleton.Recorder = new SnapshotRecorder();
+
+            if (Plugin.Singleton.Config.AutoRecordAtRoundStart)
+            {
+                Plugin.Singleton.Recorder.StartRecording();
+            }
         }
 
-        private void OnRoundEnded(RoundEndedEventArgs e)
+        private void OnShot(ShotEventArgs e)
         {
-            Plugin.Singleton.Recorder.Dispose();
+            if (!Plugin.Singleton.Recorder.IsRecording)
+            {
+                return;
+            }
+
+            Plugin.Singleton.Recorder.QueuedSnapshots.Enqueue(new PlayerShotFirearmSnapshot(e.Player));
         }
 
         private void OnSpawned(SpawnedEventArgs e)
         {
-            if (e.Player is null || e.Player.Role is null || !Plugin.Singleton.Recorder.IsRecording)
+            if (e.Player is null || e.Player.IsDead || e.Player.Role is null || !Plugin.Singleton.Recorder.IsRecording)
             {
                 return;
             }

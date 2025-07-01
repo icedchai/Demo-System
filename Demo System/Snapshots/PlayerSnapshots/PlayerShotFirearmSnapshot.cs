@@ -1,32 +1,37 @@
 ﻿using DemoSystem.SnapshotHandlers;
 using DemoSystem.Snapshots.Interfaces;
 using Exiled.API.Features;
+using Exiled.API.Features.Items;
+using CommandSystem;
+using NetworkManagerUtils.Dummies;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using CommandSystem.Commands.RemoteAdmin.Dummies;
+using PlayerRoles.FirstPersonControl;
+using Exiled.API.Extensions;
 
 namespace DemoSystem.Snapshots.PlayerSnapshots
 {
-    public class PlayerReceivedHitmarkerSnapshot : Snapshot, IPlayerSnapshot
+    public class PlayerShotFirearmSnapshot : Snapshot, IPlayerSnapshot
     {
-        public override void SerializeSpecial(BinaryWriter writer)
+        public PlayerShotFirearmSnapshot(Player player)
         {
-            base.SerializeSpecial(writer);
-        }
-
-        public override void DeserializeSpecial(BinaryReader reader)
-        {
-            base.DeserializeSpecial(reader);
+            Player = player.Id;
         }
 
         public override void ReadSnapshot()
         {
             base.ReadSnapshot();
+
             if (SnapshotReader.Singleton.TryGetActor(Player, out Npc npc))
             {
-                Hitmarker.SendHitmarkerDirectly(npc.ReferenceHub, 0.1f);
+                if (npc.CurrentItem is Firearm firearm)
+                {
+                    firearm.Base.DummyEmulator.AddEntry(ActionName.Shoot, true);
+                }
             }
         }
 

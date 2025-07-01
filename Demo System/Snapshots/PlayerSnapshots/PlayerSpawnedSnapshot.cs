@@ -16,6 +16,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using Vector3 = UnityEngine.Vector3;
+using MEC;
 
 namespace DemoSystem.Snapshots.PlayerSnapshots
 {
@@ -47,10 +48,10 @@ namespace DemoSystem.Snapshots.PlayerSnapshots
         {
             base.ReadSnapshot();
 
-            if (SnapshotReader.Singleton.TryGetPlayer(Player, out Npc npc))
+            if (SnapshotReader.Singleton.TryGetActor(Player, out Npc npc))
             {
                 npc.Role.Set(Role, SpawnReason, SpawnFlags);
-                npc.ReferenceHub.characterClassManager.GodMode = true;
+                Timing.CallDelayed(1f, () => npc.ReferenceHub.characterClassManager.GodMode = true);
             }
         }
     }

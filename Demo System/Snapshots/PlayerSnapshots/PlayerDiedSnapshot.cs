@@ -1,8 +1,10 @@
-﻿using DemoSystem.SnapshotHandlers;
+﻿using CommandSystem.Commands.RemoteAdmin;
+using DemoSystem.SnapshotHandlers;
 using DemoSystem.Snapshots.Interfaces;
 using Exiled.API.Enums;
 using Exiled.API.Features;
 using Exiled.API.Features.DamageHandlers;
+using PlayerStatsSystem;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,10 +30,10 @@ namespace DemoSystem.Snapshots.PlayerSnapshots
         {
             base.ReadSnapshot();
 
-            if (SnapshotReader.Singleton.TryGetPlayer(Player, out Npc npc))
+            if (SnapshotReader.Singleton.TryGetActor(Player, out Npc npc))
             {
                 npc.ReferenceHub.characterClassManager.GodMode = false;
-                npc.Kill($"{DamageType}");
+                npc.Hurt(-1f, DamageType);
             }
         }
 

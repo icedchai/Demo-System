@@ -6,12 +6,17 @@ using Exiled.API.Features;
 using MEC;
 using System.Runtime.InteropServices;
 using UnityEngine;
+using VoiceChat.Codec;
+using NAudio.Wave;
 
 namespace DemoSystem.SnapshotHandlers
 {
     public class SnapshotRecorder : IDisposable
     {
         public const int Version = 0;
+
+        public DateTime BeganRecording => new DateTime(DemoProperties.BeganRecording, DateTimeKind.Local);
+
         public bool Disposed { get; private set; }
 
         public bool IsRecording { get; private set; }
@@ -30,13 +35,17 @@ namespace DemoSystem.SnapshotHandlers
             Writer = new BinaryWriter(Stream);
         }
 
+        public StartOfDemoSnapshot DemoProperties { get; private set; }
+
         public void StartRecording()
         {
-            FileStream = new FileStream($"B:/Recordings/recording-{DateTime.Now.ToString("yyyy-dd-M--HH-mm-ss")}", FileMode.Append, FileAccess.Write);
+            DemoProperties = new();
+            FileStream = new FileStream($"{Plugin.Singleton.Config.RecordingsDirectory}recording-{DateTime.Now.ToString("yyyy-dd-M--HH-mm-ss")}", FileMode.Append, FileAccess.Write);
             IsRecording = true;
 
             Writer.Write(Version);
 
+            QueuedSnapshots.Enqueue(DemoProperties);
             foreach (Player player in Player.List)
             {
                 QueuedSnapshots.Enqueue(new PlayerVerifiedSnapshot(player));
@@ -50,8 +59,8 @@ namespace DemoSystem.SnapshotHandlers
 
         public void StopRecording()
         {
+            QueuedSnapshots.Enqueue(new EndOfDemoSnapshot());
             IsRecording = false;
-            WriteToFile();
             Dispose();
         }
 
@@ -60,6 +69,14 @@ namespace DemoSystem.SnapshotHandlers
             WriteToFile();
 
             Disposed = true;
+            foreach (var stream in PlayerVoiceChatSnapshot.PlayerIdToFileStream.Values)
+            {
+                stream.Dispose();
+            }
+            foreach (var writer in PlayerVoiceChatSnapshot.PlayerIdToWaveWriter.Values)
+            {
+                writer.Dispose();
+            }
             Stream.Dispose();
             Writer.Dispose();
             FileStream.Dispose();
@@ -67,7 +84,7 @@ namespace DemoSystem.SnapshotHandlers
 
         public Queue<Snapshot> QueuedSnapshots { get; set; } = new Queue<Snapshot>();
 
-        private FileStream FileStream;
+        internal FileStream FileStream;
 
         private MemoryStream Stream;
 
@@ -75,7 +92,7 @@ namespace DemoSystem.SnapshotHandlers
 
         public void WriteToFile()
         {
-            Log.Info(Stream.Length);
+            // Log.Info($"{Stream.Length} bytes written.");
 
             Stream.Position = 0;
             Stream.CopyTo(FileStream);
@@ -99,6 +116,10 @@ namespace DemoSystem.SnapshotHandlers
 
                 Snapshot snapshot = QueuedSnapshots.Dequeue();
                 snapshot.Serialize(Writer);
+                if (snapshot is EndOfDemoSnapshot)
+                {
+                    Log.Info("End of demo");
+                }
             }
         }
 
@@ -120,17 +141,17 @@ namespace DemoSystem.SnapshotHandlers
             }
         }
 
-        Dictionary<Player, Vector3> playerLastPos { get; set; } = new Dictionary<Player, Vector3>();
+        Dictionary<Player, Vector3> playerLastPos = new Dictionary<Player, Vector3>();
 
-        Dictionary<Player, Quaternion> playerLastRot { get; set; } = new Dictionary<Player, Quaternion>();
+        Dictionary<Player, Quaternion> playerLastRot = new Dictionary<Player, Quaternion>();
 
-        Dictionary<Player, Vector3> playerLastScale { get; set; } = new Dictionary<Player, Vector3>();
+        Dictionary<Player, Vector3> playerLastScale = new Dictionary<Player, Vector3>();
 
-        Dictionary<Player, float> playerLastHealth { get; set; } = new Dictionary<Player, float>();
+        Dictionary<Player, float> playerLastHealth = new Dictionary<Player, float>();
 
-        Dictionary<Player, float> playerLastHume { get; set; } = new Dictionary<Player, float>();
+        Dictionary<Player, float> playerLastHume = new Dictionary<Player, float>();
 
-        Dictionary<Player, float> playerLastArtificial { get; set; } = new Dictionary<Player, float>();
+        Dictionary<Player, float> playerLastArtificial = new Dictionary<Player, float>();
 
         private IEnumerator<float> RecordPlayerProperties()
         {
@@ -140,8 +161,8 @@ namespace DemoSystem.SnapshotHandlers
                 {
                     if (player.Role.IsAlive)
                     {
-                        RecordHealth(player);
                         RecordPosition(player);
+                        RecordHealth(player);
                     }
                 }
                 yield return Timing.WaitForOneFrame;

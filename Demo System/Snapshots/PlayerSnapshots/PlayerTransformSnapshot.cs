@@ -43,7 +43,7 @@ namespace DemoSystem.Snapshots.PlayerSnapshots
         {
             base.ReadSnapshot();
 
-            if (SnapshotReader.Singleton.TryGetPlayer(Player, out Npc npc) && npc.Role.Base is IFpcRole fpcRole)
+            if (SnapshotReader.Singleton.TryGetActor(Player, out Npc npc))
             {
                 npc.Position = Position;
                 npc.Rotation = Rotation;

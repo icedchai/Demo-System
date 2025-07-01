@@ -13,7 +13,12 @@ namespace DemoSystem.Patches.RecordHelperPatches
     {
         public static void Postfix(ReferenceHub hub, float size, bool playAudio)
         {
-            Plugin.Singleton.Recorder.QueuedSnapshots.Enqueue(new PlayerReceivedHitmarkerSnapshot() { Player = hub.PlayerId, Size = size, PlayAudio = playAudio });
+            if (!Plugin.Singleton.Recorder.IsRecording)
+            {
+                return;
+            }
+
+            Plugin.Singleton.Recorder.QueuedSnapshots.Enqueue(new PlayerReceivedHitmarkerSnapshot() { Player = hub.PlayerId });
         }
     }
 }

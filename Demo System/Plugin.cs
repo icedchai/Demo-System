@@ -23,7 +23,7 @@ namespace DemoSystem
 
         public static Plugin Singleton { get; set; }
 
-        public SnapshotRecorder Recorder { get; set; }
+        public SnapshotRecorder Recorder { get; set; } = new SnapshotRecorder();
 
         public EventHandlers.EventHandler RoundEventHandler { get; set; } = new EventHandlers.EventHandler();
 

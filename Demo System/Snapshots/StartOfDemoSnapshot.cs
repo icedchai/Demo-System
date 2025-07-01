@@ -7,20 +7,32 @@ using System.Threading.Tasks;
 
 namespace DemoSystem.Snapshots
 {
-    public class RoundPropertiesSnapshot : Snapshot
+    public class StartOfDemoSnapshot : Snapshot
     {
         public int Seed { get; set; }
+
+        public long BeganRecording { get; set; }
+
+        public int DateTimeKind { get; set; }
+
+        public StartOfDemoSnapshot()
+        {
+            Seed = Map.Seed;
+            BeganRecording = DateTime.Now.Ticks;
+        }
 
         public override void DeserializeSpecial(BinaryReader reader)
         {
             base.DeserializeSpecial(reader);
             Seed = reader.ReadInt32();
+            BeganRecording = reader.ReadInt64();
         }
 
         public override void SerializeSpecial(BinaryWriter writer)
         {
             base.SerializeSpecial(writer);
             writer.Write(Seed);
+            writer.Write(BeganRecording);
         }
 
         public override void ReadSnapshot()

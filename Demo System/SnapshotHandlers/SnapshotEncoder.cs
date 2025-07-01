@@ -52,7 +52,7 @@ namespace DemoSystem.SnapshotHandlers
             validTypes.Sort((a, b) => a.FullName.CompareTo(b.FullName));
             foreach (Type type in validTypes)
             {
-                SnapshotEncoder.RegisterSnapshotType(type);
+                RegisterSnapshotType(type);
             }
         }
 

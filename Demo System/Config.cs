@@ -8,6 +8,10 @@ namespace DemoSystem
 
         public bool Debug { get; set; } = false;
 
+        public string RecordingsDirectory { get; set; } = "/home/container/SCPDemos/";
+
+        public bool AutoRecordAtRoundStart { get; set; } = false;
+
         public bool RecordVoiceChat { get; set; } = false;
     }
 }

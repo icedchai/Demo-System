@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <PackageReference Include="ExMod.Exiled" Version="9.6.1" />
+    <PackageReference Include="NAudio" Version="2.2.1" />
   </ItemGroup>
 
   <ItemGroup>
@@ -28,6 +29,9 @@
     </Reference>
     <Reference Include="Mirror">
       <HintPath>..\..\..\dependancies\EXILEDREF\Mirror.dll</HintPath>
+    </Reference>
+    <Reference Include="NVorbis">
+      <HintPath>..\..\..\dependancies\plugins\NVorbis.dll</HintPath>
     </Reference>
     <Reference Include="Pooling">
       <HintPath>..\..\..\dependancies\EXILEDREF\Pooling.dll</HintPath>
