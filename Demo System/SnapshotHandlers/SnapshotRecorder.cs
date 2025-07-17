@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using UnityEngine;
 using VoiceChat.Codec;
 using NAudio.Wave;
+using DemoSystem.Snapshots.Enums;
 
 namespace DemoSystem.SnapshotHandlers
 {
@@ -49,7 +50,7 @@ namespace DemoSystem.SnapshotHandlers
             foreach (Player player in Player.List)
             {
                 QueuedSnapshots.Enqueue(new PlayerVerifiedSnapshot(player));
-                QueuedSnapshots.Enqueue(new PlayerSpawnedSnapshot() { Player = player.Id, Role = player.Role.Type, SpawnFlags = PlayerRoles.RoleSpawnFlags.None });
+                QueuedSnapshots.Enqueue(new PlayerSpawnedSnapshot(player.Id, player.Role.Type, Exiled.API.Enums.SpawnReason.RoundStart, PlayerRoles.RoleSpawnFlags.None));
             }
             Timing.RunCoroutine(EncodeSnapshots());
             Timing.RunCoroutine(WriteFile());
@@ -69,17 +70,20 @@ namespace DemoSystem.SnapshotHandlers
             WriteToFile();
 
             Disposed = true;
+
+            Stream.Dispose();
+            Writer.Dispose();
+            FileStream.Dispose();
+
             foreach (var stream in PlayerVoiceChatSnapshot.PlayerIdToFileStream.Values)
             {
                 stream.Dispose();
             }
+            return;
             foreach (var writer in PlayerVoiceChatSnapshot.PlayerIdToWaveWriter.Values)
             {
                 writer.Dispose();
             }
-            Stream.Dispose();
-            Writer.Dispose();
-            FileStream.Dispose();
         }
 
         public Queue<Snapshot> QueuedSnapshots { get; set; } = new Queue<Snapshot>();
@@ -198,9 +202,14 @@ namespace DemoSystem.SnapshotHandlers
             Vector3 playerPos = player.Position;
             Quaternion playerRot = player.Rotation;
 
+            TransformDifference transformDifference = TransformDifference.None;
+            transformDifference = (playerPos != lastRecordedPos ? TransformDifference.Position : TransformDifference.None) |
+                                  (playerRot != lastRecordedRot ? TransformDifference.Rotation : TransformDifference.None) |
+                                  (playerScale != lastRecordedScale ? TransformDifference.Scale : TransformDifference.None);
+
             if (recordPosOverride || playerPos != lastRecordedPos || playerRot != lastRecordedRot || playerScale != lastRecordedScale)
             {
-                QueuedSnapshots.Enqueue(new PlayerTransformSnapshot(player));
+                QueuedSnapshots.Enqueue(new PlayerTransformSnapshot(player, transformDifference));
                 playerLastPos[player] = playerPos;
                 playerLastRot[player] = playerRot;
                 playerLastScale[player] = playerScale;

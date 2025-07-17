@@ -27,7 +27,7 @@ namespace DemoSystem.Snapshots.PlayerSnapshots
         public override void ReadSnapshot()
         {
             base.ReadSnapshot();
-            if (SnapshotReader.Singleton.TryGetActor(Player, out Npc npc))
+            if (SnapshotReader.Singleton.TryGetPlayerActor(Player, out Npc npc))
             {
                 npc.Health = Health;
                 npc.ArtificialHealth = Artificial;

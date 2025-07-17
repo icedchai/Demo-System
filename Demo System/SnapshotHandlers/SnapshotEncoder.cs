@@ -11,6 +11,7 @@ using DemoSystem.Snapshots.PlayerSnapshots;
 using DemoSystem.Extensions;
 using System.Reflection;
 using CommandSystem.Commands.RemoteAdmin;
+using DemoSystem.Snapshots.Enums;
 
 namespace DemoSystem.SnapshotHandlers
 {
@@ -108,19 +109,27 @@ namespace DemoSystem.SnapshotHandlers
                 writer.Write(roleSnapshot.Role);
             }
 
-            if (snapshot is IPositionSnapshot positionSnapshot)
+            if (snapshot is IItemSnapshot itemSnapshot)
             {
-                writer.Write(positionSnapshot.Position);
+                writer.Write(itemSnapshot.Item);
             }
 
-            if (snapshot is IScaleSnapshot scaleSnapshot)
+            if (snapshot is ITransformSnapshot transformSnapshot)
             {
-                writer.Write(scaleSnapshot.Scale);
-            }
+                writer.Write((byte)transformSnapshot.TransformDifference);
 
-            if (snapshot is IRotationSnapshot rotationSnapshot)
-            {
-                writer.Write(rotationSnapshot.Rotation);
+                if (transformSnapshot.TransformDifference.HasFlag(Snapshots.Enums.TransformDifference.Position))
+                {
+                    writer.Write(transformSnapshot.Position);
+                }
+                if (transformSnapshot.TransformDifference.HasFlag(Snapshots.Enums.TransformDifference.Rotation))
+                {
+                    writer.Write(transformSnapshot.Rotation);
+                }
+                if (transformSnapshot.TransformDifference.HasFlag(Snapshots.Enums.TransformDifference.Scale))
+                {
+                    writer.Write(transformSnapshot.Scale);
+                }
             }
 
             snapshot.SerializeSpecial(writer);
@@ -154,19 +163,27 @@ namespace DemoSystem.SnapshotHandlers
                 roleSnapshot.Role = reader.ReadRoleTypeId();
             }
 
-            if (snapshot is IPositionSnapshot positionSnapshot)
+            if (snapshot is IItemSnapshot itemSnapshot)
             {
-                positionSnapshot.Position = reader.ReadVector3();
+                itemSnapshot.Item = reader.ReadUInt16();
             }
 
-            if (snapshot is IScaleSnapshot scaleSnapshot)
+            if (snapshot is ITransformSnapshot transformSnapshot)
             {
-                scaleSnapshot.Scale = reader.ReadVector3();
-            }
+                transformSnapshot.TransformDifference = (TransformDifference)reader.ReadByte();
 
-            if (snapshot is IRotationSnapshot rotationSnapshot)
-            {
-                rotationSnapshot.Rotation = reader.ReadQuaternion();
+                if (transformSnapshot.TransformDifference.HasFlag(TransformDifference.Position))
+                {
+                    transformSnapshot.Position = reader.ReadVector3();
+                }
+                if (transformSnapshot.TransformDifference.HasFlag(TransformDifference.Rotation))
+                {
+                    transformSnapshot.Rotation = reader.ReadQuaternion();
+                }
+                if (transformSnapshot.TransformDifference.HasFlag(TransformDifference.Scale))
+                {
+                    transformSnapshot.Scale = reader.ReadVector3();
+                }
             }
 
             snapshot.DeserializeSpecial(reader);

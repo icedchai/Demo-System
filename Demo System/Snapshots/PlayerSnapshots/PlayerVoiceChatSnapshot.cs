@@ -20,6 +20,7 @@ using Snapshot = DemoSystem.Snapshots.Snapshot;
 using NAudio.Wave;
 using NAudio.Vorbis;
 using UnityEngine;
+using NVorbis.Contracts;
 
 namespace DemoSystem.Snapshots.PlayerSnapshots
 {
@@ -33,7 +34,7 @@ namespace DemoSystem.Snapshots.PlayerSnapshots
 
         internal static Dictionary<int, WaveFileWriter> PlayerIdToWaveWriter { get; set; } = new Dictionary<int, WaveFileWriter>();
 
-        internal static Dictionary<int, WaveFileReader> PlayerIdToWaveReader { get; set; } = new Dictionary<int, WaveFileReader>();
+        internal static Dictionary<int, VorbisReader> PlayerIdToVorbisReader { get; set; } = new Dictionary<int, VorbisReader>();
 
         public PlayerVoiceChatSnapshot()
         {
@@ -51,26 +52,19 @@ namespace DemoSystem.Snapshots.PlayerSnapshots
         {
             base.DeserializeSpecial(reader);
             Channel = (VoiceChatChannel)reader.ReadInt32();
+
             if (!PlayerIdToFileStream.TryGetValue(Player, out FileStream fileStream))
             {
-                fileStream = new FileStream($"{Plugin.Singleton.Config.RecordingsDirectory}recording-{Plugin.Singleton.Recorder.BeganRecording.ToString("yyyy-dd-M--HH-mm-ss")}-{Player}.wav", FileMode.OpenOrCreate, FileAccess.ReadWrite);
+                fileStream = new FileStream($"{Plugin.Singleton.Config.RecordingsDirectory}recording-{SnapshotReader.Singleton.DemoProperties.BeganRecording.ToString("yyyy-dd-M--HH-mm-ss")}-{Player}.ogg", FileMode.OpenOrCreate, FileAccess.ReadWrite);
                 PlayerIdToFileStream.Add(Player, fileStream);
             }
-            if (!PlayerIdToWaveReader.TryGetValue(Player, out WaveFileReader waveReader))
+            if (!PlayerIdToVorbisReader.TryGetValue(Player, out VorbisReader vorbisReader))
             {
-                PlayerIdToWaveReader.Add(Player, (waveReader = new WaveFileReader(fileStream)));
+                PlayerIdToVorbisReader.Add(Player, (vorbisReader = new VorbisReader(fileStream)));
             }
             int samplesToTake = (int)(Time.deltaTime * 48000);
             float[] _pcm = new float[samplesToTake];
-            for (int i = 0; i < samplesToTake; i++)
-            {
-                float[] floats = waveReader.ReadNextSampleFrame();
-                if (floats is null)
-                {
-                    return;
-                }
-                _pcm[i] = floats[0];
-            }
+            vorbisReader.ReadSamples(_pcm, 0, samplesToTake);
             Samples = _pcm;
         }
 
@@ -95,9 +89,15 @@ namespace DemoSystem.Snapshots.PlayerSnapshots
         {
             base.ReadSnapshot();
 
-            if (SnapshotReader.Singleton.TryGetActor(Player, out Npc npc))
+            if (SnapshotReader.Singleton.TryGetPlayerActor(Player, out Npc npc))
             {
+                byte[] encodedData = new byte[512];
+
+                int length = OpusEncoder.Encode(Samples, encodedData);
+
                 VoiceMessage message = new VoiceMessage();
+                message.Data = encodedData;
+                message.DataLength = length;
                 message.Channel = Channel;
                 message.Speaker = npc.ReferenceHub;
                 message.SendToAuthenticated();

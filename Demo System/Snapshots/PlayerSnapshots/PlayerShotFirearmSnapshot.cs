@@ -26,7 +26,7 @@ namespace DemoSystem.Snapshots.PlayerSnapshots
         {
             base.ReadSnapshot();
 
-            if (SnapshotReader.Singleton.TryGetActor(Player, out Npc npc))
+            if (SnapshotReader.Singleton.TryGetPlayerActor(Player, out Npc npc))
             {
                 if (npc.CurrentItem is Firearm firearm)
                 {

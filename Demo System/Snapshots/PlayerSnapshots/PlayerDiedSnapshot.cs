@@ -30,7 +30,7 @@ namespace DemoSystem.Snapshots.PlayerSnapshots
         {
             base.ReadSnapshot();
 
-            if (SnapshotReader.Singleton.TryGetActor(Player, out Npc npc))
+            if (SnapshotReader.Singleton.TryGetPlayerActor(Player, out Npc npc))
             {
                 npc.ReferenceHub.characterClassManager.GodMode = false;
                 npc.Hurt(-1f, DamageType);

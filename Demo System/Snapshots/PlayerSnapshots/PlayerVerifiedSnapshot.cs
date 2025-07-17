@@ -42,7 +42,7 @@ namespace DemoSystem.Snapshots.PlayerSnapshots
         public override void ReadSnapshot()
         {
             base.ReadSnapshot();
-            SnapshotReader.Singleton.SpawnActor(Player, Nickname);
+            SnapshotReader.Singleton.SpawnPlayerActor(Player, Nickname);
         }
     }
 }

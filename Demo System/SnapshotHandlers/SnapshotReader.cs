@@ -10,6 +10,7 @@ using PlayerRoles.FirstPersonControl;
 using CommandSystem.Commands.RemoteAdmin.Dummies;
 using DemoSystem.Snapshots.PlayerSnapshots;
 using Exiled.API.Features.Items;
+using Exiled.API.Features.Pickups;
 
 namespace DemoSystem.SnapshotHandlers
 {
@@ -44,8 +45,6 @@ namespace DemoSystem.SnapshotHandlers
                 Log.Error(ex);
             }
 
-
-
             //Todo: Remove
             Timing.CallDelayed(1f, () => Timing.RunCoroutine(ReadAll()));
         }
@@ -54,7 +53,32 @@ namespace DemoSystem.SnapshotHandlers
 
         private BinaryReader Reader;
 
-        public Npc SpawnActor(int id, string name)
+        public Pickup SpawnPickupActor(ushort serial, ItemType itemType)
+        {
+            Pickup pickup = Pickup.Create(itemType);
+
+            ItemActors.Add(serial, Item.Get(pickup.Serial));
+            return pickup;
+        }
+
+        public Item SpawnItemActor(ushort serial, ItemType itemType)
+        {
+            Item item = Item.Create(itemType);
+
+            ItemActors.Add(serial, item);
+            return item;
+        }
+
+        public bool TryGetItemActor(ushort serial, out Item item)
+        {
+            if (!ItemActors.TryGetValue(serial, out item))
+            {
+                return false;
+            }
+            return true;
+        }
+
+        public Npc SpawnPlayerActor(int id, string name)
         {
             Npc npc = new Npc(DummyUtils.SpawnDummy(name));
             Timing.CallDelayed(0.5f, () =>
@@ -67,11 +91,11 @@ namespace DemoSystem.SnapshotHandlers
             return npc;
         }
 
-        public bool TryGetActor(int id, out Npc npc)
+        public bool TryGetPlayerActor(int id, out Npc npc)
         {
             if (!PlayerActors.TryGetValue(id, out npc))
             {
-                npc = SpawnActor(id, $"Unknown Actor ID: {id}");
+                npc = SpawnPlayerActor(id, $"Unknown Actor ID: {id}");
             }
             return true;
         }
@@ -95,7 +119,7 @@ namespace DemoSystem.SnapshotHandlers
                             DemoProperties = startOfDemoSnapshot;
                             break;
                         case EndOfFrameSnapshot endOfFrameSnapshot:
-                            yield return Timing.WaitForOneFrame;
+                            yield return Timing.WaitForSeconds(endOfFrameSnapshot.DeltaTime);
                             break;
                         case EndOfDemoSnapshot:
                             Dispose();
@@ -103,6 +127,7 @@ namespace DemoSystem.SnapshotHandlers
                         default:
                             try
                             {
+                                Log.Info(snapshot.GetType().Name);
                                 snapshot.ReadSnapshot();
                             }
                             catch (Exception e)

@@ -17,6 +17,7 @@ using UnityEngine;
 using UnityEngine.Profiling;
 using Mirror;
 using UnityEngine.Assertions.Must;
+using Exiled.Events.EventArgs.Map;
 
 namespace DemoSystem.EventHandlers
 {
@@ -46,6 +47,11 @@ namespace DemoSystem.EventHandlers
             Exiled.Events.Handlers.Player.Shot -= OnShot;
 
             LabApi.Events.Handlers.PlayerEvents.ToggledNoclip -= OnToggledNoclip;
+        }
+
+        private void OnItemSpawned(PickupAddedEventArgs e)
+        {
+
         }
 
         private void OnWaitingForPlayers()
@@ -81,7 +87,7 @@ namespace DemoSystem.EventHandlers
                 return;
             }
 
-            Plugin.Singleton.Recorder.QueuedSnapshots.Enqueue(new PlayerSpawnedSnapshot() { Player = e.Player.Id, Role = e.Player.Role.Type, SpawnReason = e.Reason, SpawnFlags = e.SpawnFlags });
+            Plugin.Singleton.Recorder.QueuedSnapshots.Enqueue(new PlayerSpawnedSnapshot(e.Player.Id, e.Player.Role.Type, e.Reason, e.SpawnFlags));
         }
 
         private void OnVoiceChatting(VoiceChattingEventArgs e)

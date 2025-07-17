@@ -16,15 +16,11 @@ using System.Threading.Tasks;
 
 namespace DemoSystem.Snapshots.PlayerSnapshots
 {
-    public class PlayerChangedItemSnapshot : Snapshot, IPlayerSnapshot
+    public class PlayerChangedItemSnapshot : Snapshot, IPlayerSnapshot, IItemSnapshot
     {
         public int Player { get; set; }
 
-        public ItemType ItemType { get; set; }
-
-        public List<AttachmentName> FirearmAttachments { get; set; }
-
-        public JailbirdWearState JailbirdWearState { get; set; }
+        public ushort Item { get; set; }
 
         public PlayerChangedItemSnapshot()
         {
@@ -36,20 +32,11 @@ namespace DemoSystem.Snapshots.PlayerSnapshots
 
             if (player.CurrentItem is null)
             {
-                ItemType = ItemType.None;
+                Item = 0;
             }
             else
             {
-                ItemType = player.CurrentItem.Type;
-                if (player.CurrentItem is Firearm firearm)
-                {
-                    FirearmAttachments = firearm.Attachments.Select(f => f.Name).ToList();
-                }
-
-                if (player.CurrentItem is Jailbird jailbird)
-                {
-                    JailbirdWearState = jailbird.WearState;
-                }
+                Item = player.CurrentItem.Serial;
             }
 
         }
@@ -58,67 +45,19 @@ namespace DemoSystem.Snapshots.PlayerSnapshots
         {
             base.ReadSnapshot();
 
-            if (SnapshotReader.Singleton.TryGetActor(Player, out Npc npc))
+            if (SnapshotReader.Singleton.TryGetPlayerActor(Player, out Npc npc))
             {
-                if (ItemType == ItemType.None)
+                if (Item == 0)
                 {
                     npc.CurrentItem = null;
                     return;
                 }
 
-                if (npc.IsInventoryFull)
+                if (SnapshotReader.Singleton.TryGetItemActor(Item, out Item item))
                 {
-                    npc.RemoveItem(npc.Items.FirstOrDefault(i => !i.IsArmor));
-                }
-                Item item = npc.AddItem(ItemType);
-
-                if (item is Firearm firearm)
-                {
-                    firearm.AddAttachment(FirearmAttachments);
-                }
-/*
-                if (item is Jailbird jailbird)
-                {
-                    jailbird.WearState = JailbirdWearState;
-                }*/
-
-                npc.CurrentItem = item;
-            }
-        }
-
-        public override void SerializeSpecial(BinaryWriter writer)
-        {
-            base.SerializeSpecial(writer);
-            writer.Write((int)ItemType);
-            if (ItemType.IsWeapon(false))
-            {
-                writer.Write(FirearmAttachments.Count);
-                foreach (AttachmentName attachment in FirearmAttachments)
-                {
-                    writer.Write((int)attachment);
+                    npc.CurrentItem = item;
                 }
             }
-            /*else if (ItemType == ItemType.Jailbird)
-            {
-                writer.Write((int)JailbirdWearState);
-            }*/
-        }
-
-        public override void DeserializeSpecial(BinaryReader reader)
-        {
-            base.DeserializeSpecial(reader);
-            ItemType = (ItemType)reader.ReadInt32();
-            if (ItemType.IsWeapon(false))
-            {
-                for (int i = 0; i < reader.ReadInt32(); i++)
-                {
-                    FirearmAttachments.Add((AttachmentName)reader.ReadInt32());
-                }
-            }
-            /*else if (ItemType == ItemType.Jailbird)
-            {
-                JailbirdWearState = (JailbirdWearState)reader.ReadInt32();
-            }*/
         }
     }
 }
