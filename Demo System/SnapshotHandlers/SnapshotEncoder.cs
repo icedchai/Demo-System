@@ -12,6 +12,7 @@ using DemoSystem.Extensions;
 using System.Reflection;
 using CommandSystem.Commands.RemoteAdmin;
 using DemoSystem.Snapshots.Enums;
+using Exiled.API.Features;
 
 namespace DemoSystem.SnapshotHandlers
 {
@@ -114,11 +115,11 @@ namespace DemoSystem.SnapshotHandlers
                 writer.Write(itemSnapshot.Item);
             }
 
-            if (snapshot is ITransformSnapshot transformSnapshot)
+            if (snapshot is IPlayerTransformSnapshot transformSnapshot)
             {
                 writer.Write((byte)transformSnapshot.TransformDifference);
 
-                if (transformSnapshot.TransformDifference.HasFlag(Snapshots.Enums.TransformDifference.Position))
+                if (transformSnapshot.TransformDifference.HasFlag(TransformDifference.Position))
                 {
                     writer.Write(transformSnapshot.Position);
                 }
@@ -143,11 +144,13 @@ namespace DemoSystem.SnapshotHandlers
 
             if (!IdToSnapshotType.TryGetValue(type, out Type snapshotType))
             {
+                Log.Error(type);
                 return false;
             }
 
             if (snapshotType == null || snapshotType.BaseType != typeof(Snapshot))
             {
+                Log.Error("Couldnt deserialize type");
                 return false;
             }
 
@@ -168,7 +171,7 @@ namespace DemoSystem.SnapshotHandlers
                 itemSnapshot.Item = reader.ReadUInt16();
             }
 
-            if (snapshot is ITransformSnapshot transformSnapshot)
+            if (snapshot is IPlayerTransformSnapshot transformSnapshot)
             {
                 transformSnapshot.TransformDifference = (TransformDifference)reader.ReadByte();
 
@@ -178,7 +181,7 @@ namespace DemoSystem.SnapshotHandlers
                 }
                 if (transformSnapshot.TransformDifference.HasFlag(TransformDifference.Rotation))
                 {
-                    transformSnapshot.Rotation = reader.ReadQuaternion();
+                    transformSnapshot.Rotation = reader.ReadVector2();
                 }
                 if (transformSnapshot.TransformDifference.HasFlag(TransformDifference.Scale))
                 {

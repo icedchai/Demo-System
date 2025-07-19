@@ -15,16 +15,16 @@ namespace DemoSystem.Snapshots.PlayerSnapshots
     using UnityEngine;
 
     /// <summary>
-    /// Represents a player's position at a point in time, as well as their rotation.
+    /// Represents a player's position, rotation, and scale at a point in time.
     /// </summary>
-    public class PlayerTransformSnapshot : Snapshot, IPlayerSnapshot, ITransformSnapshot
+    public class PlayerTransformSnapshot : Snapshot, IPlayerSnapshot, IPlayerTransformSnapshot
     {
         public PlayerTransformSnapshot()
         {
 
         }
 
-        public PlayerTransformSnapshot(Player player, TransformDifference transformDifference)
+        public PlayerTransformSnapshot(Player player, TransformDifference transformDifference = TransformDifference.All)
         {
             Player = player.Id;
             TransformDifference = transformDifference;
@@ -33,10 +33,12 @@ namespace DemoSystem.Snapshots.PlayerSnapshots
             {
                 Position = player.Position;
             }
+
             if (transformDifference.HasFlag(TransformDifference.Rotation))
             {
-                Rotation = player.CameraTransform.rotation;
+                Rotation = GetLookRot(player.ReferenceHub);
             }
+
             if (transformDifference.HasFlag(TransformDifference.Scale))
             {
                 Scale = player.Scale;
@@ -49,7 +51,7 @@ namespace DemoSystem.Snapshots.PlayerSnapshots
 
         public Vector3 Scale { get; set; }
 
-        public Quaternion Rotation { get; set; }
+        public Vector2 Rotation { get; set; }
 
         public TransformDifference TransformDifference { get; set; }
 
@@ -65,7 +67,7 @@ namespace DemoSystem.Snapshots.PlayerSnapshots
                 }
                 if (TransformDifference.HasFlag(TransformDifference.Rotation))
                 {
-                    npc.Rotation = Rotation;
+                    npc.ReferenceHub.TryOverrideRotation(Rotation);
                 }
                 if (TransformDifference.HasFlag(TransformDifference.Scale))
                 {
@@ -73,6 +75,16 @@ namespace DemoSystem.Snapshots.PlayerSnapshots
                 }
             }
         }
+
+        public static Vector2 GetLookRot(ReferenceHub hub)
+        {
+            if (hub.roleManager.CurrentRole is not IFpcRole fpcRole)
+                return Vector2.zero;
+
+            FpcMouseLook mouseLook = fpcRole.FpcModule.MouseLook;
+            return new Vector2(mouseLook.CurrentVertical, mouseLook.CurrentHorizontal);
+        }
+
         void SetPosition(IFpcRole role, Vector3 dir, float distance)
         {
             Vector3 vector = role.FpcModule.Hub.PlayerCameraReference.TransformDirection(dir).NormalizeIgnoreY();

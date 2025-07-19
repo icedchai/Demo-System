@@ -20,10 +20,29 @@ namespace DemoSystem.SnapshotHandlers
         {
             FileStream.Dispose();
             Reader.Dispose();
+
             foreach (Npc npc in PlayerActors.Values)
             {
                 npc.Destroy();
             }
+
+            foreach (var reader in PlayerVoiceChatSnapshot.PlayerIdToVorbisReader.Values)
+            {
+                reader.Dispose();
+            }
+            PlayerVoiceChatSnapshot.PlayerIdToVorbisReader.Clear();
+
+            foreach (var audioPlayer in PlayerVoiceChatSnapshot.PlayerIdToPlayerAudioTransmitter.Values)
+            {
+                audioPlayer.Stop();
+            }
+            PlayerVoiceChatSnapshot.PlayerIdToPlayerAudioTransmitter.Clear();
+
+            foreach (var stream in PlayerVoiceChatSnapshot.PlayerIdToFileStream.Values)
+            {
+                stream.Dispose();
+            }
+            PlayerVoiceChatSnapshot.PlayerIdToFileStream.Clear();
         }
         public static SnapshotReader Singleton { get; set; }
 
@@ -125,15 +144,7 @@ namespace DemoSystem.SnapshotHandlers
                             Dispose();
                             yield break;
                         default:
-                            try
-                            {
-                                Log.Info(snapshot.GetType().Name);
-                                snapshot.ReadSnapshot();
-                            }
-                            catch (Exception e)
-                            {
-                                Log.Error(e);
-                            }
+                            snapshot.ReadSnapshot();
                             break;
                     }
                 }

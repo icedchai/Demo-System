@@ -17,5 +17,7 @@ namespace DemoSystem.Snapshots.Enums
         Rotation = 2,
 
         Scale = 4,
+
+        All = 7,
     }
 }

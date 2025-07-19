@@ -17,6 +17,12 @@
             float z = binaryReader.ReadSingle();
             return new Vector3(x, y, z);
         }
+        public static Vector2 ReadVector2(this BinaryReader binaryReader)
+        {
+            float x = binaryReader.ReadSingle();
+            float y = binaryReader.ReadSingle();
+            return new Vector2(x, y);
+        }
         public static Quaternion ReadQuaternion(this BinaryReader binaryReader)
         {
             float w = binaryReader.ReadSingle();

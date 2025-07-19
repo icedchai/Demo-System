@@ -41,7 +41,7 @@ namespace DemoSystem.SnapshotHandlers
         public void StartRecording()
         {
             DemoProperties = new();
-            FileStream = new FileStream($"{Plugin.Singleton.Config.RecordingsDirectory}recording-{DateTime.Now.ToString("yyyy-dd-M--HH-mm-ss")}", FileMode.Append, FileAccess.Write);
+            FileStream = new FileStream($"{Plugin.Singleton.Config.RecordingsDirectory}recording-{DemoProperties.BeganRecordingDate.ToString("yyyy-dd-M--HH-mm-ss")}", FileMode.Append, FileAccess.Write);
             IsRecording = true;
 
             Writer.Write(Version);
@@ -62,7 +62,7 @@ namespace DemoSystem.SnapshotHandlers
         {
             QueuedSnapshots.Enqueue(new EndOfDemoSnapshot());
             IsRecording = false;
-            Dispose();
+            Timing.CallDelayed(0.5f, Dispose);
         }
 
         public void Dispose()
@@ -75,15 +75,23 @@ namespace DemoSystem.SnapshotHandlers
             Writer.Dispose();
             FileStream.Dispose();
 
-            foreach (var stream in PlayerVoiceChatSnapshot.PlayerIdToFileStream.Values)
-            {
-                stream.Dispose();
-            }
-            return;
             foreach (var writer in PlayerVoiceChatSnapshot.PlayerIdToWaveWriter.Values)
             {
                 writer.Dispose();
             }
+            PlayerVoiceChatSnapshot.PlayerIdToWaveWriter.Clear();
+
+            foreach (var stream in PlayerVoiceChatSnapshot.PlayerIdToFileStream.Values)
+            {
+                stream.Dispose();
+            }
+            PlayerVoiceChatSnapshot.PlayerIdToFileStream.Clear();
+
+            foreach (var reader in PlayerVoiceChatSnapshot.PlayerIdToVorbisReader.Values)
+            {
+                reader.Dispose();
+            }
+            PlayerVoiceChatSnapshot.PlayerIdToVorbisReader.Clear();
         }
 
         public Queue<Snapshot> QueuedSnapshots { get; set; } = new Queue<Snapshot>();
@@ -147,7 +155,7 @@ namespace DemoSystem.SnapshotHandlers
 
         Dictionary<Player, Vector3> playerLastPos = new Dictionary<Player, Vector3>();
 
-        Dictionary<Player, Quaternion> playerLastRot = new Dictionary<Player, Quaternion>();
+        Dictionary<Player, Vector2> playerLastRot = new Dictionary<Player, Vector2>();
 
         Dictionary<Player, Vector3> playerLastScale = new Dictionary<Player, Vector3>();
 
@@ -191,21 +199,29 @@ namespace DemoSystem.SnapshotHandlers
                 recordPosOverride = true;
             }
 
-            if (!playerLastRot.TryGetValue(player, out Quaternion lastRecordedRot))
+            if (!playerLastRot.TryGetValue(player, out Vector2 lastRecordedRot))
             {
-                lastRecordedRot = player.Rotation;
+                lastRecordedRot = PlayerTransformSnapshot.GetLookRot(player.ReferenceHub);
                 playerLastRot.Add(player, lastRecordedRot);
                 recordPosOverride = true;
             }
 
             Vector3 playerScale = player.Scale;
             Vector3 playerPos = player.Position;
-            Quaternion playerRot = player.Rotation;
+            Vector2 playerRot = PlayerTransformSnapshot.GetLookRot(player.ReferenceHub);
 
             TransformDifference transformDifference = TransformDifference.None;
-            transformDifference = (playerPos != lastRecordedPos ? TransformDifference.Position : TransformDifference.None) |
-                                  (playerRot != lastRecordedRot ? TransformDifference.Rotation : TransformDifference.None) |
-                                  (playerScale != lastRecordedScale ? TransformDifference.Scale : TransformDifference.None);
+
+            if (recordPosOverride)
+            {
+                transformDifference = TransformDifference.All;
+            }
+            else
+            {
+                transformDifference = (playerPos != lastRecordedPos ? TransformDifference.Position : TransformDifference.None) |
+                                      (playerRot != lastRecordedRot ? TransformDifference.Rotation : TransformDifference.None) |
+                                      (playerScale != lastRecordedScale ? TransformDifference.Scale : TransformDifference.None);
+            }
 
             if (recordPosOverride || playerPos != lastRecordedPos || playerRot != lastRecordedRot || playerScale != lastRecordedScale)
             {

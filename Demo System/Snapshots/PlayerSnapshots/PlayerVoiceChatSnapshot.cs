@@ -21,6 +21,9 @@ using NAudio.Wave;
 using NAudio.Vorbis;
 using UnityEngine;
 using NVorbis.Contracts;
+using LabApi.Features.Audio;
+using MEC;
+using System.Collections;
 
 namespace DemoSystem.Snapshots.PlayerSnapshots
 {
@@ -36,14 +39,21 @@ namespace DemoSystem.Snapshots.PlayerSnapshots
 
         internal static Dictionary<int, VorbisReader> PlayerIdToVorbisReader { get; set; } = new Dictionary<int, VorbisReader>();
 
-        public PlayerVoiceChatSnapshot()
-        {
-        }
+        internal static Dictionary<int, PlayerAudioTransmitter> PlayerIdToPlayerAudioTransmitter { get; set; } = new Dictionary<int, PlayerAudioTransmitter>();
 
-        public PlayerVoiceChatSnapshot(VoiceMessage message)
+        public PlayerVoiceChatSnapshot() { }
+
+        public PlayerVoiceChatSnapshot(VoiceMessage message, bool intercom = false)
         {
             Player = message.Speaker.PlayerId;
-            Channel = message.Channel;
+            if (intercom)
+            {
+                Channel = VoiceChatChannel.Intercom;
+            }
+            else
+            {
+                Channel = message.Channel;
+            }
             Samples = new float[24000];
             Length = OpusDecoder.Decode(message.Data, message.DataLength, Samples);
         }
@@ -51,17 +61,22 @@ namespace DemoSystem.Snapshots.PlayerSnapshots
         public override void DeserializeSpecial(BinaryReader reader)
         {
             base.DeserializeSpecial(reader);
+            return;
             Channel = (VoiceChatChannel)reader.ReadInt32();
-
+            Log.Info("setup voice snapshot");
             if (!PlayerIdToFileStream.TryGetValue(Player, out FileStream fileStream))
             {
-                fileStream = new FileStream($"{Plugin.Singleton.Config.RecordingsDirectory}recording-{SnapshotReader.Singleton.DemoProperties.BeganRecording.ToString("yyyy-dd-M--HH-mm-ss")}-{Player}.ogg", FileMode.OpenOrCreate, FileAccess.ReadWrite);
+                Log.Info($"{Plugin.Singleton.Config.RecordingsDirectory}recording-{SnapshotReader.Singleton.DemoProperties.BeganRecordingDate.ToString("yyyy-dd-M--HH-mm-ss")}-{Player}.ogg");
+                fileStream = new FileStream($"{Plugin.Singleton.Config.RecordingsDirectory}recording-{SnapshotReader.Singleton.DemoProperties.BeganRecordingDate.ToString("yyyy-dd-M--HH-mm-ss")}-{Player}.ogg", FileMode.OpenOrCreate, FileAccess.ReadWrite);
                 PlayerIdToFileStream.Add(Player, fileStream);
             }
+
             if (!PlayerIdToVorbisReader.TryGetValue(Player, out VorbisReader vorbisReader))
             {
+                Log.Info("Creating vorbis reader");
                 PlayerIdToVorbisReader.Add(Player, (vorbisReader = new VorbisReader(fileStream)));
             }
+            Log.Info("Done setting up for voice snapshot");
             int samplesToTake = (int)(Time.deltaTime * 48000);
             float[] _pcm = new float[samplesToTake];
             vorbisReader.ReadSamples(_pcm, 0, samplesToTake);
@@ -88,27 +103,43 @@ namespace DemoSystem.Snapshots.PlayerSnapshots
         public override void ReadSnapshot()
         {
             base.ReadSnapshot();
-
+            return;
             if (SnapshotReader.Singleton.TryGetPlayerActor(Player, out Npc npc))
             {
-                byte[] encodedData = new byte[512];
-
-                int length = OpusEncoder.Encode(Samples, encodedData);
-
-                VoiceMessage message = new VoiceMessage();
-                message.Data = encodedData;
-                message.DataLength = length;
-                message.Channel = Channel;
-                message.Speaker = npc.ReferenceHub;
-                message.SendToAuthenticated();
+                if (!PlayerIdToPlayerAudioTransmitter.TryGetValue(Player, out var audioPlayer))
+                {
+                    audioPlayer = new PlayerAudioTransmitter(npc.ReferenceHub);
+                    Timing.RunCoroutine(PlayAudioFile(audioPlayer));
+                }
+                audioPlayer.Channel = Channel;
+                Queue.Enqueue(Samples);
             }
+        }
+
+        private Queue<float[]> Queue { get; set; } = new Queue<float[]>();
+
+        internal IEnumerator<float> PlayAudioFile(PlayerAudioTransmitter audioPlayer)
+        {
+            bool shouldRun = true;
+            while (shouldRun && audioPlayer.IsPlaying && !Round.IsLobby)
+            {
+                float[] samples = Queue.Dequeue();
+                if (samples is not null && samples.Count() != 0)
+                {
+                    audioPlayer.Play(samples, true, false);
+                }
+                yield return Timing.WaitForOneFrame;
+            }
+
+            audioPlayer.Stop();
+            audioPlayer = null;
         }
 
         public int Player { get; set; }
 
         public VoiceChatChannel Channel { get; set; }
 
-        public float[] Samples { get; set; }
+        public float[] Samples { get; set; } = new float[24000];
 
         public int Length { get; set; }
     }

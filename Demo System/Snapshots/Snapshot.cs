@@ -3,6 +3,9 @@ using DemoSystem.Snapshots.Interfaces;
 
 namespace DemoSystem.Snapshots
 {
+    /// <summary>
+    /// The base abstract class representing a snapshot. MUST HAVE A PARAMATERLESS CONSTRUCTOR OR A SILENT FAIL WILL OCCUR.
+    /// </summary>
     public abstract class Snapshot
     {
         private ushort _id = 0;

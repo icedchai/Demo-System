@@ -13,6 +13,8 @@ namespace DemoSystem.Snapshots
 
         public long BeganRecording { get; set; }
 
+        public DateTime BeganRecordingDate => new DateTime(BeganRecording);
+
         public int DateTimeKind { get; set; }
 
         public StartOfDemoSnapshot()

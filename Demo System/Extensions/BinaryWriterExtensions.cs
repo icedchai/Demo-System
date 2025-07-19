@@ -5,6 +5,11 @@
 
     public static class BinaryWriterExtensions
     {
+        public static void Write(this BinaryWriter binaryWriter, Vector2 vector2)
+        {
+            binaryWriter.Write(vector2.x);
+            binaryWriter.Write(vector2.y);
+        }
         public static void Write(this BinaryWriter binaryWriter, Vector3 vector3)
         {
             binaryWriter.Write(vector3.x);
